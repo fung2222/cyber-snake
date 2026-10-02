@@ -176,3 +176,14 @@ kbd { display: inline-block; min-width: 24px; padding: 1px 6px; margin: 0 2px; f
   .controls { font-size: 12px; }
   .demo-tag { bottom: auto; top: calc(max(10px, env(safe-area-inset-top)) + 72px); font-size: 10px; letter-spacing: 3px; padding: 4px 10px; }
 }
+
+/* ---- i18n language toggle (from cyber-kit v0.2.1 hud.css) ---- */
+.link-row { margin-top: 14px; font-size: 12px; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+#screen-start .link-row { justify-content: flex-start; }
+.link-row a { color: var(--c1); text-decoration: none; opacity: .85; }
+.lang-btn { min-width: 44px; height: 44px; padding: 0 10px; background: rgba(10,4,30,.55); border: 1px solid var(--c1); color: #fff; cursor: pointer; pointer-events: auto; font: 700 14px 'Orbitron', sans-serif; letter-spacing: 1px; }
+.lang-btn:hover, .lang-btn:focus-visible { filter: brightness(1.3); outline: none; box-shadow: inset 0 0 12px var(--c1); }
+#screen-pause .lang-btn { margin-top: 14px; }
+html[data-lang="en"] .title, html[data-lang="en"] .title2, html[data-lang="en"] .banner-main { letter-spacing: 3px; font-family: 'Orbitron', sans-serif; }
+html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
+@media (max-width: 700px), (orientation: portrait) { #screen-start .link-row { justify-content: center; } }

@@ -11,7 +11,9 @@ import { SnakeView, FoodView, ObstacleView, cellToWorld } from './entities.js';
 import { Particles, Shockwaves, CyberShader } from './effects.js';
 import { SnakeGame } from './game.js';
 import { aiChoose } from './ai.js';
-import { themeFor, targetFor } from './levels.js';
+import { themeFor, targetFor, AUTHORED_LEVELS, MILESTONE_EVERY, milestoneBonus } from './levels.js';
+import { i18n, t as tr } from '../vendor/cyber-kit/core/i18n.js';
+import './strings.js';
 import { AudioEngine } from './audio.js';
 import { UI } from './ui.js';
 import { setupInput } from './input.js';
@@ -32,7 +34,7 @@ let renderer;
 try {
   renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('scene'), antialias: false, powerPreference: 'high-performance' });
 } catch (err) {
-  fatal('你的瀏覽器唔支援 WebGL，無法運行遊戲。 (WebGL not available)');
+  fatal(tr('noWebgl'));
   throw err;
 }
 let pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
@@ -96,6 +98,10 @@ function updateTheme(dt) {
 let state = 'attract'; // attract | playing | paused | dying | over
 let autopilot = true;
 let hi = parseInt(localStorage.getItem(HI_KEY) || '0', 10) || 0;
+const BEST_LEVEL_KEY = 'cyberSnake.bestLevel';
+let bestLevel = parseInt(localStorage.getItem(BEST_LEVEL_KEY) || '0', 10) || 0;
+function saveBestLevel(l) { if (DEMO || l <= bestLevel) return; bestLevel = l; try { localStorage.setItem(BEST_LEVEL_KEY, String(l)); } catch {} }
+function refreshStartRecords() { ui.el.startHi.textContent = hi.toLocaleString('en-US'); document.getElementById('start-level').textContent = bestLevel || '—'; }
 let camMode = params.get('cam') === 'top' ? 'top' : 'follow';
 const fx = { trauma: 0, aberr: 0, glitch: 0, flash: 0, fovKick: 0, slowmo: 0, danger: 0 };
 let dyingT = 0;
@@ -152,7 +158,11 @@ const game = new SnakeGame({
     if (state === 'playing' || DEMO) {
       audio.levelUp();
       const th = themeFor(level);
-      ui.banner(`第 ${level} 關`, `LEVEL ${level} · 升級`, `速度提升 · ${th.name} · 目標 ${targetFor(level)} 粒`);
+      const zone = i18n.isZh() ? th.name : th.en;
+      const ms = level % MILESTONE_EVERY === 0;
+      if (ms) game.score += milestoneBonus(level);
+      if (state === 'playing') saveBestLevel(level);
+      ui.banner(tr('levelN', { n: level }), level > AUTHORED_LEVELS ? `${tr('levelUp')} · ${tr('endless')}` : tr('levelUp'), ms ? tr('milestone', { pts: milestoneBonus(level) }) : tr('levelNote', { zone, target: targetFor(level) }));
       ui.flash('rgba(255,255,255,0.35)', 500);
     }
   },
@@ -210,13 +220,14 @@ function toMenu() {
   newGame(1, true);
   state = 'attract';
   ui.show('start'); ui.hud(false);
-  ui.el.startHi.textContent = hi.toLocaleString('en-US');
+  refreshStartRecords();
 }
 
 function finishDeath() {
   if (DEMO) { newGame(START_LEVEL, true); state = 'playing'; return; }
   const isRecord = game.score > hi && game.score > 0;
   if (isRecord) { hi = game.score; localStorage.setItem(HI_KEY, String(hi)); }
+  saveBestLevel(game.level);
   state = 'over';
   ui.gameOver(game, hi, isRecord);
 }
@@ -252,6 +263,8 @@ on('btn-menu', toMenu);
 on('btn-pause', () => { if (state === 'playing' || state === 'paused') pauseToggle(); });
 on('btn-cam', () => { camMode = camMode === 'follow' ? 'top' : 'follow'; });
 on('btn-mute', () => { audio.init(); ui.setMuted(audio.toggleMute()); });
+i18n.bindToggle(document.getElementById('btn-lang')); i18n.bindToggle(document.getElementById('btn-lang2'));
+i18n.onChange(() => { if (state === 'over') ui.el.overReason.textContent = game.deathReason ? tr('death.' + game.deathReason) : ''; });
 ui.setMuted(audio.muted);
 if (params.get('fps') === '1') ui.el.fps.classList.remove('hidden');
 
@@ -435,7 +448,7 @@ setTheme(START_LEVEL, true);
 newGame(DEMO ? START_LEVEL : 1, true);
 obstacleView.setList(game.obstacles, 1);
 obstacleView.anim = null;
-ui.el.startHi.textContent = hi.toLocaleString('en-US');
+refreshStartRecords();
 if (DEMO) {
   state = 'playing';
   ui.show(null); ui.hud(true);
@@ -452,5 +465,6 @@ window.__snake = {
   get length() { return game.snake.length; }, get fps() { return fps; }, get pixelRatio() { return pixelRatio; },
   game, start: startGame, pause: pauseToggle,
   setAutopilot(b) { autopilot = b; },
+  levelTo(n) { game.level = n - 1; game.levelUp(); },
   renderer,
 };

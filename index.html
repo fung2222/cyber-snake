@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#05010f">
-<title>賽博蛇 CYBER SNAKE · 霓虹九龍</title>
+<title data-i18n="doc.title">賽博蛇 CYBER SNAKE · 霓虹九龍</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%2305010f%22/%3E%3Cpath d=%22M6 24h10v-8h10V8%22 stroke=%22%2300f0ff%22 stroke-width=%224%22 fill=%22none%22/%3E%3Ccircle cx=%2226%22 cy=%228%22 r=%223%22 fill=%22%23ff2bd6%22/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./css/style.css">
 <script type="importmap">
@@ -25,11 +26,11 @@
 <div id="hud" class="hidden">
   <div class="hud-panel hud-left">
     <div class="stat">
-      <div class="label">分數 <span>SCORE</span></div>
+      <div class="label" data-i18n="score"></div>
       <div class="value big" id="hud-score">0</div>
     </div>
     <div class="stat">
-      <div class="label">最高分 <span>HI-SCORE</span></div>
+      <div class="label" data-i18n="hi"></div>
       <div class="value" id="hud-hi">0</div>
     </div>
   </div>
@@ -37,7 +38,7 @@
   <div class="hud-center">
     <div class="level-progress">
       <div class="lp-head">
-        <span class="lp-title">下一級 <em>NEXT LEVEL</em></span>
+        <span class="lp-title" data-i18n="nextLevel"></span>
         <span id="hud-progress-text">0 / 5</span>
       </div>
       <div class="lp-bar"><div class="lp-fill" id="hud-progress"></div><div class="lp-ticks" id="hud-ticks"></div></div>
@@ -50,28 +51,28 @@
 
   <div class="hud-panel hud-right">
     <div class="stat">
-      <div class="label">等級 <span>LEVEL</span></div>
+      <div class="label" data-i18n="level"></div>
       <div class="value big" id="hud-level">1</div>
     </div>
     <div class="stat">
-      <div class="label">長度 <span>LENGTH</span></div>
+      <div class="label" data-i18n="length"></div>
       <div class="value" id="hud-length">4</div>
     </div>
   </div>
 
   <div class="hud-buttons">
-    <button id="btn-pause" class="icon-btn" title="暫停 (P / Esc)" aria-label="暫停">
+    <button id="btn-pause" class="icon-btn" data-i18n-attr="title:pauseTip,aria-label:pauseTip">
       <svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
     </button>
-    <button id="btn-cam" class="icon-btn" title="切換鏡頭 (C)" aria-label="切換鏡頭">
+    <button id="btn-cam" class="icon-btn" data-i18n-attr="title:camTip,aria-label:camTip">
       <svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke-width="2"/><circle cx="12" cy="13" r="3.5" fill="none" stroke-width="2"/></svg>
     </button>
-    <button id="btn-mute" class="icon-btn" title="靜音 (M)" aria-label="靜音">
+    <button id="btn-mute" class="icon-btn" data-i18n-attr="title:muteTip,aria-label:muteTip">
       <svg class="ico-on" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke-width="2"/></svg>
       <svg class="ico-off" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l6 6M22 9l-6 6" fill="none" stroke-width="2"/></svg>
     </button>
   </div>
-  <div id="demo-tag" class="demo-tag hidden">DEMO · 自動示範</div>
+  <div id="demo-tag" class="demo-tag hidden" data-i18n="demo"></div>
   <div id="fps" class="fps hidden">-- FPS</div>
 </div>
 
@@ -79,53 +80,55 @@
 
 <div id="banner" class="banner hidden">
   <div class="banner-sub" id="banner-sub">LEVEL UP</div>
-  <div class="banner-main" id="banner-main" data-text="第 2 關">第 2 關</div>
-  <div class="banner-note" id="banner-note">速度提升 · 新障礙已部署</div>
+  <div class="banner-main" id="banner-main" data-text=""></div>
+  <div class="banner-note" id="banner-note"></div>
 </div>
 
 <!-- Start screen -->
 <div id="screen-start" class="screen">
   <div class="panel">
     <div class="kicker">NEON KOWLOON · 2087</div>
-    <h1 class="title glitch" data-text="賽博蛇">賽博蛇</h1>
-    <div class="title-en">CYBER SNAKE</div>
-    <p class="tagline">喺霓虹九龍嘅數據網格入面，吞噬數據核心，不斷進化。</p>
-    <button class="neon-btn" id="btn-start"><span>開始遊戲</span><small>START · ENTER</small></button>
+    <h1 class="title glitch" data-text="賽博蛇" data-i18n="title">賽博蛇</h1>
+    <div class="title-en" data-i18n="titleEn"></div>
+    <p class="tagline" data-i18n="tagline"></p>
+    <button class="neon-btn" id="btn-start"><span data-i18n="start"></span><small data-i18n="startS"></small></button>
     <div class="controls">
-      <div><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移動</div>
-      <div><kbd>P</kbd> / <kbd>Esc</kbd> 暫停　<kbd>M</kbd> 靜音　<kbd>C</kbd> 鏡頭</div>
-      <div class="touch-hint">手機：喺畫面上滑動控制方向</div>
+      <div data-i18n-html="keysMove"></div>
+      <div data-i18n-html="keysOther"></div>
+      <div class="touch-hint" data-i18n="touchHint"></div>
     </div>
-    <div class="hi-line">最高分 HI-SCORE <b id="start-hi">0</b></div>
+    <div class="hi-line"><span data-i18n="hi"></span> <b id="start-hi">0</b>　<span data-i18n="bestLevel"></span> <b id="start-level">—</b></div>
+    <div class="link-row"><a href="./privacy.html" data-i18n="privacy"></a> · <button class="lang-btn" id="btn-lang"></button></div>
   </div>
 </div>
 
 <!-- Pause screen -->
 <div id="screen-pause" class="screen hidden">
   <div class="panel small">
-    <h2 class="title2 glitch" data-text="已暫停">已暫停</h2>
-    <div class="title-en">PAUSED</div>
-    <button class="neon-btn" id="btn-resume"><span>繼續</span><small>RESUME · P</small></button>
-    <button class="neon-btn ghost" id="btn-quit"><span>返回主畫面</span><small>MAIN MENU</small></button>
+    <h2 class="title2 glitch" data-text="已暫停" data-i18n="paused">已暫停</h2>
+    <div class="title-en" data-i18n="pausedS"></div>
+    <button class="neon-btn" id="btn-resume"><span data-i18n="resume"></span><small>P</small></button>
+    <button class="neon-btn ghost" id="btn-quit"><span data-i18n="menu"></span><small>MENU</small></button>
+    <button class="lang-btn" id="btn-lang2"></button>
   </div>
 </div>
 
 <!-- Game over screen -->
 <div id="screen-over" class="screen hidden">
   <div class="panel">
-    <div class="kicker danger">SYSTEM FAILURE</div>
-    <h2 class="title2 glitch danger" data-text="系統崩潰">系統崩潰</h2>
-    <div class="title-en">GAME OVER</div>
-    <div id="newrecord" class="newrecord hidden">★ 新紀錄 NEW RECORD ★</div>
+    <div class="kicker danger" data-i18n="overK"></div>
+    <h2 class="title2 glitch danger" data-text="系統崩潰" data-i18n="over">系統崩潰</h2>
+    <div class="title-en" data-i18n="overS"></div>
+    <div id="newrecord" class="newrecord hidden" data-i18n="newRecord"></div>
     <div class="results">
-      <div><span>分數</span><b id="over-score">0</b></div>
-      <div><span>等級</span><b id="over-level">1</b></div>
-      <div><span>長度</span><b id="over-length">4</b></div>
-      <div><span>最高分</span><b id="over-hi">0</b></div>
+      <div><span data-i18n="score"></span><b id="over-score">0</b></div>
+      <div><span data-i18n="level"></span><b id="over-level">1</b></div>
+      <div><span data-i18n="length"></span><b id="over-length">4</b></div>
+      <div><span data-i18n="hi"></span><b id="over-hi">0</b></div>
     </div>
-    <div class="death-reason" id="over-reason">撞牆</div>
-    <button class="neon-btn" id="btn-restart"><span>再嚟一鋪</span><small>RETRY · ENTER</small></button>
-    <button class="neon-btn ghost" id="btn-menu"><span>主畫面</span><small>MAIN MENU</small></button>
+    <div class="death-reason" id="over-reason"></div>
+    <button class="neon-btn" id="btn-restart"><span data-i18n="retry"></span><small>ENTER</small></button>
+    <button class="neon-btn ghost" id="btn-menu"><span data-i18n="menuShort"></span><small>MENU</small></button>
   </div>
 </div>
 

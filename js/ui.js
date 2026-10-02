@@ -1,3 +1,4 @@
+import { t } from '../vendor/cyber-kit/core/i18n.js';
 // DOM HUD / screens controller.
 const $ = id => document.getElementById(id);
 
@@ -81,14 +82,14 @@ export class UI {
   tickBanner(dt) {
     if (this.bannerT === undefined || this.bannerT < 0) return;
     this.bannerT += dt;
-    const t = this.bannerT, b = this.el.banner;
+    const bt = this.bannerT, b = this.el.banner;
     let op = 1, sx = 1, sy = 1, ty = 0, blur = 0;
-    if (t < 0.22) { const k = t / 0.22; op = k; sx = 2.2 - 1.2 * k; sy = 0.2 + 0.8 * k; blur = 8 * (1 - k); }
-    else if (t > 1.7) { const k = Math.min(1, (t - 1.7) / 0.4); op = 1 - k; ty = -30 * k; }
+    if (bt < 0.22) { const k = bt / 0.22; op = k; sx = 2.2 - 1.2 * k; sy = 0.2 + 0.8 * k; blur = 8 * (1 - k); }
+    else if (bt > 1.7) { const k = Math.min(1, (bt - 1.7) / 0.4); op = 1 - k; ty = -30 * k; }
     b.style.opacity = op.toFixed(3);
     b.style.transform = `translateY(${ty}px) scale(${sx}, ${sy})`;
     b.style.filter = blur > 0.1 ? `blur(${blur.toFixed(1)}px)` : 'none';
-    if (t > 2.1) { b.classList.add('hidden'); this.bannerT = -1; }
+    if (bt > 2.1) { b.classList.add('hidden'); this.bannerT = -1; }
   }
 
   flash(color = 'rgba(255,255,255,0.5)', ms = 300) {
@@ -99,12 +100,11 @@ export class UI {
   }
 
   gameOver(g, hi, isRecord) {
-    const reasons = { wall: '撞到能量牆 · WALL COLLISION', self: '咬到自己 · SELF COLLISION', obstacle: '撞到障礙物 · OBSTACLE HIT' };
     this.el.overScore.textContent = g.score.toLocaleString('en-US');
     this.el.overLevel.textContent = g.level;
     this.el.overLength.textContent = g.snake.length;
     this.el.overHi.textContent = hi.toLocaleString('en-US');
-    this.el.overReason.textContent = reasons[g.deathReason] || '';
+    this.el.overReason.textContent = g.deathReason ? t('death.' + g.deathReason) : '';
     this.el.newrecord.classList.toggle('hidden', !isRecord);
     this.show('over');
   }

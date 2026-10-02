@@ -2,12 +2,12 @@
 export const GRID = 20;
 
 export const THEMES = [
-  { name: '霓虹九龍', c1: 0x00f0ff, c2: 0xff2bd6, c3: 0xfff35c, fog: 0x12051f, horizon: 0x5a0a5e, zenith: 0x02010a, food: 0xfff35c, grid: 0x00c8ff },
-  { name: '毒霧旺角', c1: 0x7dff3a, c2: 0x9b30ff, c3: 0x3affd0, fog: 0x0b1410, horizon: 0x2a1a5c, zenith: 0x010604, food: 0xff3ad0, grid: 0x5aff6a },
-  { name: '銀翼油麻地', c1: 0xff9a1f, c2: 0x00e5c8, c3: 0xff4f3a, fog: 0x1a0b06, horizon: 0x6a2410, zenith: 0x050202, food: 0x3affff, grid: 0xff8a2a },
-  { name: '電光深水埗', c1: 0xff3aa8, c2: 0x3a7bff, c3: 0xb8ff3a, fog: 0x0a0620, horizon: 0x24106a, zenith: 0x01010c, food: 0x7affff, grid: 0xff4ab8 },
-  { name: '金龍尖沙咀', c1: 0xffd23a, c2: 0xff2a3a, c3: 0xff8af0, fog: 0x1a0a04, horizon: 0x5a1010, zenith: 0x060101, food: 0x3affd0, grid: 0xffb43a },
-  { name: '冰藍中環', c1: 0xbff4ff, c2: 0x8a3aff, c3: 0x3affff, fog: 0x060a1a, horizon: 0x1a2a6a, zenith: 0x00020a, food: 0xff3a8a, grid: 0x8ad8ff },
+  { name: '霓虹九龍', en: 'NEON KOWLOON', c1: 0x00f0ff, c2: 0xff2bd6, c3: 0xfff35c, fog: 0x12051f, horizon: 0x5a0a5e, zenith: 0x02010a, food: 0xfff35c, grid: 0x00c8ff },
+  { name: '毒霧旺角', en: 'TOXIC MONG KOK', c1: 0x7dff3a, c2: 0x9b30ff, c3: 0x3affd0, fog: 0x0b1410, horizon: 0x2a1a5c, zenith: 0x010604, food: 0xff3ad0, grid: 0x5aff6a },
+  { name: '銀翼油麻地', en: 'SILVERWING YAU MA TEI', c1: 0xff9a1f, c2: 0x00e5c8, c3: 0xff4f3a, fog: 0x1a0b06, horizon: 0x6a2410, zenith: 0x050202, food: 0x3affff, grid: 0xff8a2a },
+  { name: '電光深水埗', en: 'VOLT SHAM SHUI PO', c1: 0xff3aa8, c2: 0x3a7bff, c3: 0xb8ff3a, fog: 0x0a0620, horizon: 0x24106a, zenith: 0x01010c, food: 0x7affff, grid: 0xff4ab8 },
+  { name: '金龍尖沙咀', en: 'GOLDEN DRAGON TSIM SHA TSUI', c1: 0xffd23a, c2: 0xff2a3a, c3: 0xff8af0, fog: 0x1a0a04, horizon: 0x5a1010, zenith: 0x060101, food: 0x3affd0, grid: 0xffb43a },
+  { name: '冰藍中環', en: 'ICE BLUE CENTRAL', c1: 0xbff4ff, c2: 0x8a3aff, c3: 0x3affff, fog: 0x060a1a, horizon: 0x1a2a6a, zenith: 0x00020a, food: 0xff3a8a, grid: 0x8ad8ff },
 ];
 
 export function themeFor(level) { return THEMES[(level - 1) % THEMES.length]; }
@@ -16,6 +16,12 @@ export function speedFor(level) {
   // tick interval in seconds
   return Math.max(0.062, 0.155 - (level - 1) * 0.0125);
 }
+// Endless: levels never end. Authored layouts stop at level 6; after that layouts are procedural (seeded per level),
+// the speed curve is capped (0.062 s/tick from level 9), targets cap at 10 and obstacle count caps at 10, so it stays playable.
+export const AUTHORED_LEVELS = 6;
+export const MILESTONE_EVERY = 10;
+export const milestoneBonus = (level) => 500 * (level / MILESTONE_EVERY);   // awarded on reaching level 10, 20, 30…
+
 export function targetFor(level) { return Math.min(5 + (level - 1), 10); }
 export function pointsFor(level) { return 10 + (level - 1) * 5; }
 

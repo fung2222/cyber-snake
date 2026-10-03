@@ -1,5 +1,10 @@
 // All sound is synthesised with the Web Audio API - no external files.
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+const dbToGain = db => Math.pow(10, db / 20);
+// Loudness calibration shared with cyber-kit v0.3.0 (music ≈ -20 LUFS, median SFX ≈ music level).
+// Same chain as the kit: buses -> glue compressor -> limiter -> soft clip -> out (mute) -> speakers.
+const MUSIC_TRIM_DB = 3.9, SFX_TRIM_DB = 3.5;
+const MUSIC_GAIN = 0.42 * dbToGain(MUSIC_TRIM_DB), SFX_GAIN = 0.9 * dbToGain(SFX_TRIM_DB);
 
 export class AudioEngine {
   constructor() {
@@ -15,13 +20,18 @@ export class AudioEngine {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     const ctx = this.ctx = new AC();
-    this.master = ctx.createGain();
-    this.master.gain.value = this.muted ? 0 : 0.85;
+    this.master = ctx.createGain(); this.master.gain.value = 1;
     const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -14; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.2;
-    this.master.connect(comp); comp.connect(ctx.destination);
+    comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 2.5; comp.attack.value = 0.006; comp.release.value = 0.25;
+    const lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -4; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.12;
+    const clip = ctx.createWaveShaper(); const cc = new Float32Array(2049);
+    for (let i = 0; i < cc.length; i++) { const x = i / 1024 - 1, ax = Math.abs(x); cc[i] = ax < 0.8 ? x : Math.sign(x) * (0.8 + 0.2 * Math.tanh((ax - 0.8) / 0.2)); }
+    clip.curve = cc; clip.oversample = '2x';
+    this.out = ctx.createGain(); this.out.gain.value = this.muted ? 0 : 1;
+    this.master.connect(comp); comp.connect(lim); lim.connect(clip); clip.connect(this.out); this.out.connect(ctx.destination);
 
-    this.sfx = ctx.createGain(); this.sfx.gain.value = 0.9; this.sfx.connect(this.master);
+    this.sfx = ctx.createGain(); this.sfx.gain.value = SFX_GAIN; this.sfx.connect(this.master);
     this.music = ctx.createGain(); this.music.gain.value = 0.0; this.music.connect(this.master);
     this.musicFilter = ctx.createBiquadFilter(); this.musicFilter.type = 'lowpass'; this.musicFilter.frequency.value = 18000;
     this.musicFilter.connect(this.music);
@@ -51,7 +61,7 @@ export class AudioEngine {
   setMuted(m) {
     this.muted = m;
     localStorage.setItem('cyberSnake.muted', m ? '1' : '0');
-    if (this.ctx) this.master.gain.setTargetAtTime(m ? 0 : 0.85, this.ctx.currentTime, 0.03);
+    if (this.ctx) this.out.gain.setTargetAtTime(m ? 0 : 1, this.ctx.currentTime, 0.03);
   }
   toggleMute() { this.setMuted(!this.muted); return this.muted; }
 
@@ -159,7 +169,7 @@ export class AudioEngine {
     this.musicPlaying = true;
     const t = this.ctx.currentTime;
     this.music.gain.cancelScheduledValues(t);
-    this.music.gain.setTargetAtTime(0.42, t, 0.4);
+    this.music.gain.setTargetAtTime(MUSIC_GAIN, t, 0.4);
     this.musicFilter.frequency.cancelScheduledValues(t);
     this.musicFilter.frequency.setTargetAtTime(18000, t, 0.2);
     this.step = 0;

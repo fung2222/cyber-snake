@@ -142,6 +142,7 @@ html, body {
 .neon-btn:active { transform: translateY(1px) scale(.98); }
 .neon-btn.ghost { background: rgba(10,4,30,.4); border-color: color-mix(in srgb, var(--c2) 70%, transparent); box-shadow: 0 0 10px color-mix(in srgb, var(--c2) 35%, transparent); font-size: 17px; padding: 10px 24px; }
 .neon-btn.ghost small { color: var(--c2); }
+.neon-btn.glow-btn { min-width: 200px; font-size: 14px; padding: 8px 20px; letter-spacing: .14em; }
 #screen-start .neon-btn { animation: pulseBtn 2.2s ease-in-out infinite; }
 @keyframes pulseBtn { 50% { box-shadow: 0 0 34px var(--c1), inset 0 0 24px color-mix(in srgb, var(--c2) 45%, transparent); } }
 .controls { margin-top: 24px; font-family: var(--font-zh); font-size: 13px; line-height: 2.1; color: #aab8e8; }

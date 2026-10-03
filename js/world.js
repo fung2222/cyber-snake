@@ -9,7 +9,7 @@ export const HALF = GRID / 2;
 export const U = {
   uTime: { value: 0 },
   uFogColor: { value: new THREE.Color(0x12051f) },
-  uFogDensity: { value: 0.017 },
+  uFogDensity: { value: 0.012 },   // was 0.017: lighter haze so the arena reads crisp
   uC1: { value: new THREE.Color(0x00f0ff) },
   uC2: { value: new THREE.Color(0xff2bd6) },
   uC3: { value: new THREE.Color(0xfff35c) },

@@ -64,12 +64,25 @@ const composer = new EffectComposer(renderer, rt);
 composer.setPixelRatio(pixelRatio);
 composer.setSize(window.innerWidth, window.innerHeight);
 composer.addPass(new RenderPass(scene, camera));
-const BLOOM = parseFloat(params.get('bloom') || '0.85');
+// Glow: shared CYBER preference (same semantics as cyber-kit v0.3.0 createStage): 'low' (default) keeps the snake,
+// food and grid crisp with the bloom as an accent; 'high' = the original look. ?glow=low|high, localStorage cyber.glow.
+const GLOW = { low: { s: 0.45, r: 0.25, th: 0.92, ab: 0.0006, ak: 0.0025 }, high: { s: 1, r: 0.45, th: 0.82, ab: 0.0018, ak: 0.004 } };
+const readGlow = () => { const f = params.get('glow'); if (f === 'low' || f === 'high') return f; try { return localStorage.getItem('cyber.glow') === 'high' ? 'high' : 'low'; } catch (e) { return 'low'; } };
+let glow = readGlow();
+const BLOOM_HIGH = parseFloat(params.get('bloom') || '0.85');
+let BLOOM = BLOOM_HIGH;
 const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), BLOOM, 0.45, 0.82);
 composer.addPass(bloom);
 const cyberPass = new ShaderPass(CyberShader);
 composer.addPass(cyberPass);
 composer.addPass(new OutputPass());
+function applyGlow() {
+  const g = GLOW[glow];
+  BLOOM = params.has('bloom') ? BLOOM_HIGH : BLOOM_HIGH * g.s; bloom.strength = BLOOM; bloom.radius = g.r; bloom.threshold = g.th;
+  const b = document.getElementById('btn-glow');
+  if (b) { b.textContent = tr('kit.glow', { v: tr(glow === 'high' ? 'kit.glowHigh' : 'kit.glowLow') }); b.dataset.glow = glow; }
+}
+applyGlow();
 
 // ---------------- Theme handling ----------------
 const themeTarget = {};
@@ -264,6 +277,9 @@ on('btn-pause', () => { if (state === 'playing' || state === 'paused') pauseTogg
 on('btn-cam', () => { camMode = camMode === 'follow' ? 'top' : 'follow'; });
 on('btn-mute', () => { audio.init(); ui.setMuted(audio.toggleMute()); });
 i18n.bindToggle(document.getElementById('btn-lang')); i18n.bindToggle(document.getElementById('btn-lang2'));
+{ const gb = document.getElementById('btn-glow');
+  if (gb) gb.addEventListener('click', (e) => { e.stopPropagation(); glow = glow === 'high' ? 'low' : 'high'; try { localStorage.setItem('cyber.glow', glow); } catch (err) { /* ignore */ } applyGlow(); gb.blur(); }); }
+i18n.onChange(() => applyGlow());
 i18n.onChange(() => { if (state === 'over') ui.el.overReason.textContent = game.deathReason ? tr('death.' + game.deathReason) : ''; });
 ui.setMuted(audio.muted);
 if (params.get('fps') === '1') ui.el.fps.classList.remove('hidden');
@@ -422,7 +438,7 @@ function frame(now) {
   fx.fovKick = Math.max(0, fx.fovKick - rdt * 1.6);
   fx.danger = Math.max(0, fx.danger - rdt * 0.6);
   cyberPass.uniforms.uTime.value = time;
-  cyberPass.uniforms.uAberration.value = 0.0018 + fx.aberr * 0.004;
+  cyberPass.uniforms.uAberration.value = GLOW[glow].ab + fx.aberr * GLOW[glow].ak;
   cyberPass.uniforms.uGlitch.value = fx.glitch;
   bloom.strength = BLOOM + fx.aberr * 0.08;
 

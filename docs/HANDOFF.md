@@ -14,7 +14,7 @@ True-3D snake on a 20×20 neon grid. Eat cores → grow + score (combo up to ×3
 - Test hook: `window.__snake.levelTo(n)`.
 
 ## 3. Bilingual zh-HK / en (v1.1)
-- Uses only cyber-kit v0.2.1 `core/i18n.js`, vendored standalone at `vendor/cyber-kit/core/i18n.js` (no other kit module adopted — lowest risk).
+- Uses only cyber-kit v0.3.0 `core/i18n.js`, vendored standalone at `vendor/cyber-kit/core/i18n.js` (no other kit module adopted — lowest risk).
 - Strings: `js/strings.js` (`{key: [zh-HK, en]}`). HTML uses `data-i18n`, `data-i18n-html`, `data-i18n-attr`. Dynamic text (level banner, death reason, WebGL error) via `t()` (imported as `tr` in `main.js` to avoid clashing with frame-time variables).
 - Toggles: `#btn-lang` (start screen), `#btn-lang2` (pause). Persisted in `localStorage cyber.lang` (shared by all CYBER games); `?lang=en|zh` forces; default from `navigator.language`.
 - 3D shop-sign textures in `world.js` remain Chinese/English decoration (in-world art, not UI).
@@ -29,3 +29,7 @@ Web build has no ads. If packaged: natural break = game-over screen (Retry/Menu)
 ## 6. Known issues / ideas
 - Headless SwiftShader ≈ 3 FPS; tests poll state.
 - Not on cyber-kit renderer/UI; a full port is possible but was out of scope (minimal-risk rule).
+
+## Audio loudness + glow (2026-10-03, matches cyber-kit v0.3.0)
+- `js/audio.js` keeps its own engine but now uses the kit chain: buses → glue compressor (−16 dB, 2.5:1) → limiter (−4 dB, 20:1) → soft clip → `out` (mute). `MUSIC_TRIM_DB` 3.9 / `SFX_TRIM_DB` 3.5 put the music at ≈ −20 LUFS and the SFX/BGM ratio near 0 dB like every other CYBER game (measure with cyber-kit `tests/loudness.py … cyber-snake:AudioEngine:snake`).
+- Glow: `?glow=low|high` / shared `localStorage cyber.glow`, default LOW (bloom ×0.45, radius 0.25, threshold 0.92, less aberration). Pause screen GLOW button (`#btn-glow`). Fog density 0.017 → 0.012.

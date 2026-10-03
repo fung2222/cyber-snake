@@ -117,6 +117,7 @@ addStrings({
   'kit.continue': ['繼續挑戰', 'CONTINUE'], 'kit.loading': ['系統啟動中…', 'BOOTING…'], 'kit.demo': ['DEMO · 自動示範', 'DEMO · AUTOPLAY'],
   'kit.privacy': ['私隱政策', 'Privacy policy'], 'kit.adLabel': ['廣告', 'AD'], 'kit.webgl': ['你的瀏覽器唔支援 WebGL，無法運行遊戲。', 'WebGL is not available in this browser.'],
   'kit.rewardOffline': ['暫時冇廣告可以睇，遲啲再試下。', 'No ad available right now. Try again later.'],
+  'kit.glow': ['光暈：{v}', 'GLOW: {v}'], 'kit.glowLow': ['低', 'LOW'], 'kit.glowHigh': ['高', 'HIGH'], 'kit.glowHint': ['畫面光暈強度（所有遊戲通用）', 'Neon glow strength (all CYBER games)'],
   'kit.endless': ['無盡模式', 'ENDLESS'], 'kit.bestEndless': ['無盡紀錄', 'ENDLESS BEST'], 'kit.language': ['語言', 'LANGUAGE'],
   'kit.adsimRewarded': ['獎勵廣告示範', 'REWARDED AD (SIM)'], 'kit.adsimInter': ['插頁廣告示範', 'INTERSTITIAL (SIM)'], 'kit.adsimNote': ['?adsim=1 · 只係測試，唔係真廣告', '?adsim=1 · test only, not a real ad'],
 });

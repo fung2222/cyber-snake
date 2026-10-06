@@ -52,6 +52,6 @@ python3 -m http.server 8000
 # 打開 http://localhost:8000/
 ```
 
-URL 參數：`?demo=1` 自動示範、`?lang=en|zh` 語言、`?level=3` 由第 3 關開始、`?cam=top` 俯視鏡頭、`?fps=1` 顯示 FPS。
+URL 參數：`?demo=1` 自動示範、`?lang=en|zh` 語言、`?level=3` 由第 3 關開始、`?cam=top` 俯視鏡頭、`?fps=1` 顯示 FPS、`?nofade=1` 關閉遮擋淡出（測試用）。
 
 文件：[docs/HANDOFF.md](docs/HANDOFF.md) · [privacy.html](privacy.html) · 屬於 [CYBER ARCADE](https://github.com/fung2222/cyber-arcade) 系列。

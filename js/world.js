@@ -24,20 +24,18 @@ export function arenaPerimeter(step = PERIM_STEP, y = 0) {
   for (let s = -HALF; s < HALF - 1e-6; s += step) pts.push(new THREE.Vector3(s, y, -HALF), new THREE.Vector3(HALF, y, s), new THREE.Vector3(-s, y, HALF), new THREE.Vector3(-HALF, y, -s));
   return pts;
 }
-// segment p->q vs axis-aligned box (min/max Vector3): true if they intersect
-const _d = new THREE.Vector3();
+// segment p->q vs axis-aligned box (min/max Vector3): true if they intersect (slab test, allocation-free)
+function slab(p, d, mn, mx, r) {
+  if (Math.abs(d) < 1e-9) return p >= mn && p <= mx;
+  let a = (mn - p) / d, b = (mx - p) / d;
+  if (a > b) { const t = a; a = b; b = t; }
+  if (a > r[0]) r[0] = a; if (b < r[1]) r[1] = b;
+  return r[0] <= r[1];
+}
+const _r = [0, 1];
 export function segBox(p, q, mn, mx) {
-  let t0 = 0, t1 = 1;
-  _d.subVectors(q, p);
-  for (const k of ['x', 'y', 'z']) {
-    const d = _d[k];
-    if (Math.abs(d) < 1e-9) { if (p[k] < mn[k] || p[k] > mx[k]) return false; continue; }
-    let a = (mn[k] - p[k]) / d, b = (mx[k] - p[k]) / d;
-    if (a > b) { const tt = a; a = b; b = tt; }
-    if (a > t0) t0 = a; if (b < t1) t1 = b;
-    if (t0 > t1) return false;
-  }
-  return true;
+  _r[0] = 0; _r[1] = 1;
+  return slab(p.x, q.x - p.x, mn.x, mx.x, _r) && slab(p.y, q.y - p.y, mn.y, mx.y, _r) && slab(p.z, q.z - p.z, mn.z, mx.z, _r);
 }
 
 // Shared uniforms (same objects referenced by many materials)

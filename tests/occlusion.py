@@ -155,11 +155,19 @@ with sync_playwright() as p:
                     print(f'INFO {name} seed {seed}: orbit rays blocked by corner pylons without fade: {bk.get("orbit:pylon", 0)} (fade handles these)')
                 if fade and si == 0:
                     # live game: real camera, every level, both gameplay cameras, all corners / edges
-                    pg.click('#btn-start'); pg.wait_for_timeout(600)
+                    pg.click('#btn-start')
+                    worst = 0   # camera swinging from the attract orbit to the chase camera
+                    for k in range(8): pg.wait_for_timeout(250); worst = max(worst, pg.evaluate('__occ.live("start-transition")')['hits'])
+                    check(worst == 0, f'{name} live attract -> follow transition: 0 hits at 8 moments (worst {worst})')
                     for lv in LEVELS:
                         if lv > 1: pg.evaluate(f'__snake.levelTo({lv})'); pg.wait_for_timeout(300)
-                        for mode in ('follow', 'top'):
+                        for mode in (('top', 'follow') if lv == 1 else ('follow', 'top')):
                             pg.evaluate(f'__snake.setCamMode("{mode}")')
+                            if lv == 1:   # sample the swing between cameras with the snake in the bottom-right corner
+                                pg.evaluate('([c, d]) => __occ.park(c, d)', list(PARKS['bottom-right']))
+                                worst = 0
+                                for k in range(6): pg.wait_for_timeout(200); worst = max(worst, pg.evaluate(f'__occ.live("to-{mode}")')['hits'])
+                                check(worst == 0, f'{name} live camera transition -> {mode}: 0 hits at 6 moments (worst {worst})')
                             parks = PARKS if lv == 1 else {'bottom-right': PARKS['bottom-right']}
                             for pk, (cells, d) in parks.items():
                                 pg.evaluate('([c, d]) => __occ.park(c, d)', [cells, d]); settle(pg, 2200)

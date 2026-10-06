@@ -2,8 +2,43 @@
 import * as THREE from 'three';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { GRID } from './levels.js';
+import { cameraEnvelope, SHAKE } from './camrig.js';
 
 export const HALF = GRID / 2;
+
+// Sight-line protection (2026-10-06 occlusion fix). Every scenery object must stay out of every camera -> arena-cell
+// sight line. SIGHT.field is a top-down height cap (world units) built from camrig.cameraEnvelope(): a building whose
+// inflated footprint covers a capped cell is lowered below the cap (a "podium") or dropped. A runtime fade
+// (World.updateOcclusion) dithers away anything that still ends up in front of the arena, e.g. mid camera transition.
+export const SIGHT = {
+  EXT: 44, RES: 0.5,          // field covers |x|,|z| <= EXT at RES resolution
+  CLEAR: 27,                  // hard clear zone: no building footprint within this square half-size (unchanged)
+  MARGIN: 1.0,                // footprint inflation: shake (0.7) + sampling slop
+  VMARGIN: 0.8,               // vertical clearance under the sight lines
+  MIN_PODIUM: 3,              // shorter than this is dropped instead of kept as a podium
+  FADE_MIN: 0.12,             // dither coverage of a fully faded occluder
+};
+const PERIM_STEP = 1.0;
+export function arenaPerimeter(step = PERIM_STEP, y = 0) {
+  const pts = [];
+  for (let s = -HALF; s < HALF - 1e-6; s += step) pts.push(new THREE.Vector3(s, y, -HALF), new THREE.Vector3(HALF, y, s), new THREE.Vector3(-s, y, HALF), new THREE.Vector3(-HALF, y, -s));
+  return pts;
+}
+// segment p->q vs axis-aligned box (min/max Vector3): true if they intersect
+const _d = new THREE.Vector3();
+export function segBox(p, q, mn, mx) {
+  let t0 = 0, t1 = 1;
+  _d.subVectors(q, p);
+  for (const k of ['x', 'y', 'z']) {
+    const d = _d[k];
+    if (Math.abs(d) < 1e-9) { if (p[k] < mn[k] || p[k] > mx[k]) return false; continue; }
+    let a = (mn[k] - p[k]) / d, b = (mx[k] - p[k]) / d;
+    if (a > b) { const tt = a; a = b; b = tt; }
+    if (a > t0) t0 = a; if (b < t1) t1 = b;
+    if (t0 > t1) return false;
+  }
+  return true;
+}
 
 // Shared uniforms (same objects referenced by many materials)
 export const U = {
@@ -18,6 +53,7 @@ export const U = {
   uZenith: { value: new THREE.Color(0x02010a) },
 };
 
+const mix01 = (f) => SIGHT.FADE_MIN + (1 - SIGHT.FADE_MIN) * f;
 const NOISE_GLSL = /* glsl */`
 float hash12(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f*f*(3.0-2.0*f);
@@ -39,6 +75,10 @@ export class World {
     this.flicker = [];
     this.buildSky();
     this.buildFloor(quality);
+    this.occluders = [];      // runtime-fade candidates: { min, max, fade, target, apply(f) }
+    this.scenery = [];        // every scenery mesh (tests raycast against these)
+    this.fadeEnabled = new URLSearchParams(location.search).get('nofade') !== '1';
+    this.buildSightField();
     this.buildArena();
     this.buildCity();
     this.buildBillboard();
@@ -244,23 +284,101 @@ export class World {
       g.add(wall);
     }
     // corner pylons
-    const pylonMat = new THREE.MeshStandardMaterial({ color: 0x0b0b16, metalness: 0.9, roughness: 0.3 });
-    this.capMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    // (each corner pylon has its own materials so the sight-line fade can ghost it: from the low attract/game-over
+    // orbit a pylon sits right in front of its corner cell)
+    this.capMats = [];
     this.pylonLights = [];
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+      const pylonMat = new THREE.MeshStandardMaterial({ color: 0x0b0b16, metalness: 0.9, roughness: 0.3, transparent: true });
+      const capMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true });
+      this.capMats.push(capMat);
       const p = new THREE.Mesh(new THREE.BoxGeometry(0.7, 2.6, 0.7), pylonMat);
       p.position.set(sx * (HALF + 0.6), 1.3, sz * (HALF + 0.6));
       g.add(p);
+      const parts = [p];
       for (let k = 0; k < 3; k++) {
-        const band = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.05, 0.74), this.capMat);
-        band.position.set(p.position.x, 0.6 + k * 0.8, p.position.z); g.add(band);
+        const band = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.05, 0.74), capMat);
+        band.position.set(p.position.x, 0.6 + k * 0.8, p.position.z); g.add(band); parts.push(band);
       }
-      const cap = new THREE.Mesh(new THREE.OctahedronGeometry(0.28), this.capMat);
-      cap.position.set(p.position.x, 3.1, p.position.z); g.add(cap);
+      const cap = new THREE.Mesh(new THREE.OctahedronGeometry(0.28), capMat);
+      cap.position.set(p.position.x, 3.1, p.position.z); g.add(cap); parts.push(cap);
       this.pylonLights.push(cap);
+      for (const m of parts) { m.userData.scenery = 'pylon'; this.scenery.push(m); }
+      const px = p.position.x, pz = p.position.z;
+      this.addOccluder(new THREE.Vector3(px - 0.37, 0, pz - 0.37), new THREE.Vector3(px + 0.37, 3.4, pz + 0.37), (f) => {
+        const a = 0.18 + 0.82 * f;
+        pylonMat.opacity = a; capMat.opacity = a; pylonMat.depthWrite = capMat.depthWrite = f > 0.98;
+      });
     }
     this.group.add(g);
     this.arena = g;
+  }
+
+  // ---------------- Sight-line height cap ----------------
+  buildSightField() {
+    const { EXT, RES, CLEAR } = SIGHT;
+    const n = Math.ceil(2 * EXT / RES);
+    const field = new Float32Array(n * n).fill(Infinity);
+    const cams = cameraEnvelope({ orbitAngles: 192 });
+    const tgts = arenaPerimeter();
+    const inner = CLEAR - SIGHT.MARGIN - 1;   // nothing can stand inside this square, skip that part of each line
+    const mark = (x, z, y) => {
+      const i = Math.floor((x + EXT) / RES), j = Math.floor((z + EXT) / RES);
+      if (i < 0 || j < 0 || i >= n || j >= n) return;
+      const k = j * n + i; if (y < field[k]) field[k] = y;
+    };
+    for (const { p: c } of cams) {
+      if (Math.max(Math.abs(c.x), Math.abs(c.z)) < inner) continue;  // line never leaves the clear zone
+      for (const tg of tgts) {
+        const dx = c.x - tg.x, dz = c.z - tg.z, L = Math.hypot(dx, dz);
+        // parameter where the line leaves the inner square (it starts inside: targets are on the arena edge)
+        let ts = 1;
+        for (const [o, d] of [[tg.x, dx], [tg.z, dz]]) {
+          if (Math.abs(d) < 1e-9) continue;
+          const tt = ((d > 0 ? inner : -inner) - o) / d; if (tt > 0 && tt < ts) ts = tt;
+        }
+        const steps = Math.max(1, Math.ceil(L * (1 - ts) / (RES * 0.5)));
+        for (let s = 0; s <= steps; s++) {
+          const t = ts + (1 - ts) * s / steps, t2 = ts + (1 - ts) * Math.min(steps, s + 1) / steps;
+          const y = c.y * t;          // target y = 0, height grows towards the camera: the step's minimum is y(t)
+          mark(tg.x + dx * t, tg.z + dz * t, y); mark(tg.x + dx * t2, tg.z + dz * t2, y);
+        }
+      }
+    }
+    this.sight = { field, n };
+  }
+
+  // lowest sight line over a footprint (centre x,z, size w,d) inflated by SIGHT.MARGIN; Infinity = never in view
+  sightCap(x, z, w, d) {
+    const { EXT, RES, MARGIN } = SIGHT, { field, n } = this.sight;
+    const i0 = Math.max(0, Math.floor((x - w / 2 - MARGIN + EXT) / RES)), i1 = Math.min(n - 1, Math.floor((x + w / 2 + MARGIN + EXT) / RES));
+    const j0 = Math.max(0, Math.floor((z - d / 2 - MARGIN + EXT) / RES)), j1 = Math.min(n - 1, Math.floor((z + d / 2 + MARGIN + EXT) / RES));
+    let m = Infinity;
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) if (field[j * n + i] < m) m = field[j * n + i];
+    return m;
+  }
+
+  addOccluder(min, max, apply) {
+    const o = { min: min.clone().sub(new THREE.Vector3(0.25, 0, 0.25)), max: max.clone().add(new THREE.Vector3(0.25, 0.25, 0.25)), fade: 1, target: 1, apply };
+    this.occluders.push(o); return o;
+  }
+
+  // Safety fade: anything (still) between the camera and the arena dithers out. `focus` = extra points (head, food).
+  updateOcclusion(camPos, dt, focus = []) {
+    if (!this._perim) this._perim = arenaPerimeter(2, 0.3);
+    const pts = this._perim;
+    for (const o of this.occluders) {
+      let hit = false;
+      if (this.fadeEnabled) {
+        for (const f of focus) if (segBox(camPos, f, o.min, o.max)) { hit = true; break; }
+        if (!hit) for (const q of pts) if (segBox(camPos, q, o.min, o.max)) { hit = true; break; }
+      }
+      o.target = hit ? 0 : 1;
+      if (o.fade === o.target) continue;
+      const f = o.fade + (o.target - o.fade) * Math.min(1, dt * (hit ? 10 : 3));
+      o.fade = Math.abs(f - o.target) < 0.01 ? o.target : f; o.apply(o.fade);
+    }
+    if (this.cityFadeDirty) { this.cityFade.needsUpdate = true; this.cityFadeDirty = false; }
   }
 
   // ---------------- City ----------------
@@ -270,9 +388,10 @@ export class World {
     const mat = new THREE.ShaderMaterial({
       uniforms: { uTime: U.uTime, uC1: U.uC1, uC2: U.uC2, uC3: U.uC3, uFogColor: U.uFogColor, uFogDensity: U.uFogDensity },
       vertexShader: /* glsl */`
-        attribute float aSeed;
-        varying vec3 vW; varying vec3 vN; varying vec3 vL; varying vec3 vS; varying float vSeed;
+        attribute float aSeed; attribute float aFade;
+        varying vec3 vW; varying vec3 vN; varying vec3 vL; varying vec3 vS; varying float vSeed; varying float vFade;
         void main(){
+          vFade = aFade;
           vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0);
           vW = w.xyz; vN = normal; vL = position;
           vS = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
@@ -281,10 +400,19 @@ export class World {
         }`,
       fragmentShader: /* glsl */`
         uniform float uTime; uniform vec3 uC1, uC2, uC3;
-        varying vec3 vW; varying vec3 vN; varying vec3 vL; varying vec3 vS; varying float vSeed;
+        varying vec3 vW; varying vec3 vN; varying vec3 vL; varying vec3 vS; varying float vSeed; varying float vFade;
         ${NOISE_GLSL}
         ${FOG_GLSL}
+        float bayer4(vec2 p){ vec2 q = mod(floor(p), 4.0);
+          float b = mod(q.x + q.y * 2.0, 4.0) * 4.0 + mod(floor(q.x * 0.5) + floor(q.y * 0.5) * 2.0, 4.0);
+          return (b + 0.5) / 16.0; }
         void main(){
+          if (vFade < 0.999) {
+            // sight-line safety fade: holographic dither, keep the neon edges as a wire outline
+            vec2 ed = (0.5 - abs(vL.xz)) * vS.xz;
+            float edge = vN.y > 0.5 ? 0.0 : step(min(ed.x, ed.y), 0.07) + step(abs(vW.y - vS.y), 0.08);
+            if (edge < 0.5 && bayer4(gl_FragCoord.xy) > mix(${SIGHT.FADE_MIN.toFixed(2)}, 1.0, vFade)) discard;
+          }
           vec3 col = vec3(0.008, 0.008, 0.018);
           float dist = length(vW - cameraPosition);
           vec3 neon = vSeed < 0.33 ? uC1 : (vSeed < 0.66 ? uC2 : uC3);
@@ -341,22 +469,38 @@ export class World {
       let ok = true;
       for (const b of placed) { if (Math.abs(b.x - x) < (b.w + w) / 2 + 1 && Math.abs(b.z - z) < (b.d + d) / 2 + 1) { ok = false; break; } }
       if (!ok) continue;
-      if (Math.max(Math.abs(x) - w / 2, Math.abs(z) - d / 2) < 27) continue;
+      if (Math.max(Math.abs(x) - w / 2, Math.abs(z) - d / 2) < SIGHT.CLEAR) continue;
       const near = r < 55;
-      const h = near ? 10 + Math.random() * 30 : 18 + Math.random() * 60;
+      let h = near ? 10 + Math.random() * 30 : 18 + Math.random() * 60;
+      // keep out of every camera -> arena sight line: lower to a podium under the lowest line, or drop it
+      const cap = this.sightCap(x, z, w, d) - SIGHT.VMARGIN;
+      if (cap < SIGHT.MIN_PODIUM) continue;
+      const podium = h > cap;
+      if (podium) h = Math.max(SIGHT.MIN_PODIUM, cap - Math.random() * Math.min(3, cap - SIGHT.MIN_PODIUM));
       m4.makeScale(w, h, d); m4.setPosition(x, 0, z);
       mesh.setMatrixAt(count, m4);
       seeds[count] = Math.random();
-      const b = { x, z, w, d, h };
+      const b = { x, z, w, d, h, i: count, podium, cap: cap + SIGHT.VMARGIN };
       placed.push(b);
       if (near) this.nearBuildings.push(b);
       count++;
     }
     mesh.count = count;
     geo.setAttribute('aSeed', new THREE.InstancedBufferAttribute(seeds, 1));
+    const fade = new Float32Array(N).fill(1);
+    this.cityFade = new THREE.InstancedBufferAttribute(fade, 1); this.cityFade.setUsage(THREE.DynamicDrawUsage);
+    geo.setAttribute('aFade', this.cityFade);
+    // only buildings whose footprint is anywhere under a sight line can ever get in the way
+    for (const b of placed) if (Number.isFinite(b.cap)) {
+      this.addOccluder(new THREE.Vector3(b.x - b.w / 2, 0, b.z - b.d / 2), new THREE.Vector3(b.x + b.w / 2, b.h, b.z + b.d / 2),
+        (f) => { fade[b.i] = f; this.cityFadeDirty = true; });
+    }
+    this.buildings = placed;
     mesh.frustumCulled = false;
+    mesh.userData.scenery = 'building';
     this.group.add(mesh);
     this.city = mesh;
+    this.scenery.push(mesh);
     this.buildSigns();
   }
 
@@ -409,9 +553,14 @@ export class World {
       // vertical blade signs stick out perpendicular to the facade (HK style); rotate them to face the arena a bit
       if (vertical) ry = Math.atan2(-b.x, -b.z) + (Math.random() - 0.5) * 0.5;
       const y = 3 + Math.random() * Math.max(0, Math.min(b.h - sh - 3, 14)) + sh / 2;
+      const ext = Math.max(sw, 0.2) / 2;   // conservative: rotation-independent footprint
+      const scap = this.sightCap(px, pz, 2 * ext, 2 * ext);
+      if (y + sh / 2 > scap - SIGHT.VMARGIN) { i++; continue; }
       sign.position.set(px, y, pz);
+      if (Number.isFinite(scap)) this.addOccluder(new THREE.Vector3(px - ext, y - sh / 2, pz - ext), new THREE.Vector3(px + ext, y + sh / 2, pz + ext), (f) => { mat.opacity = mix01(f); });
+      sign.userData.scenery = 'sign';
       sign.rotation.y = ry;
-      this.group.add(sign);
+      this.group.add(sign); this.scenery.push(sign);
       if (Math.random() < 0.35) this.flicker.push({ mat, base: 2.2, seed: Math.random() * 100 });
       i++;
     }
@@ -452,13 +601,14 @@ export class World {
     });
     const bb = new THREE.Mesh(new THREE.PlaneGeometry(30, 11.25), mat);
     bb.position.set(0, 21, -42);
-    this.group.add(bb);
+    bb.userData.scenery = 'billboard';
+    this.group.add(bb); this.scenery.push(bb);
     this.billboard = bb;
     // support frame
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x0a0a14, metalness: 0.9, roughness: 0.4 });
     for (const sx of [-1, 1]) {
       const pole = new THREE.Mesh(new THREE.BoxGeometry(0.6, 16, 0.6), frameMat);
-      pole.position.set(sx * 12, 8, -42.6); this.group.add(pole);
+      pole.position.set(sx * 12, 8, -42.6); pole.userData.scenery = 'billboard-pole'; this.group.add(pole); this.scenery.push(pole);
     }
   }
 
@@ -602,7 +752,7 @@ export class World {
     this.railMat.color.copy(U.uC1.value).multiplyScalar(2.2);
     this.railMat2.color.copy(U.uC2.value).multiplyScalar(1.8);
     const blink = (Math.sin(t * 3) > 0.2) ? 4 : 1.2;
-    this.capMat.color.copy(U.uC2.value).multiplyScalar(blink);
+    for (const m of this.capMats) m.color.copy(U.uC2.value).multiplyScalar(blink);
     for (const p of this.pylonLights) { p.rotation.y = t * 1.5; p.position.y = 3.1 + Math.sin(t * 2) * 0.1; }
     for (const f of this.flicker) {
       const n = Math.sin(t * 23 + f.seed) * Math.sin(t * 7.1 + f.seed * 2);

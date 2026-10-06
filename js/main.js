@@ -7,6 +7,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 import { World, U } from './world.js';
+import * as rig from './camrig.js';
+import { fitFor, orbitPose, topPose, followPose, shakeOffset } from './camrig.js';
 import { SnakeView, FoodView, ObstacleView, cellToWorld } from './entities.js';
 import { Particles, Shockwaves, CyberShader } from './effects.js';
 import { SnakeGame } from './game.js';
@@ -304,45 +306,22 @@ window.addEventListener('resize', resize);
 resize();
 
 // ---------------- Camera ----------------
-const camTarget = new THREE.Vector3();
 const camLook = new THREE.Vector3();
 const camPosS = new THREE.Vector3(0, 18, 24);
+const desired = new THREE.Vector3(), look = new THREE.Vector3(), shakeV = new THREE.Vector3();
 function updateCamera(t, dt) {
   const aspect = camera.aspect;
-  const fit = aspect < 1.25 ? Math.min(2.3, 1.25 / aspect) : 1;
-  const desired = new THREE.Vector3();
-  const look = new THREE.Vector3();
-  if (state === 'attract' || state === 'attract-dying' || state === 'over') {
-    const a = t * 0.07 + 0.6;
-    const R = 22 * Math.min(fit, 1.5);
-    desired.set(Math.sin(a) * R, 9.5 + Math.sin(t * 0.21) * 1.5, Math.cos(a) * R);
-    look.set(0, 1.0, 0);
-    if (aspect > 1.2 && state !== 'over') { // shift composition so the title has room on the left
-      const right = new THREE.Vector3(Math.cos(a), 0, -Math.sin(a));
-      look.addScaledVector(right, -5.5);
-    }
-  } else if (camMode === 'top') {
-    desired.set(0, 25 * fit, 15 * fit);
-    look.set(0, 0, 1.5);
-  } else {
-    const head = snakeView.headPos;
-    camTarget.set(head.x * 0.55, 0, head.z * 0.5).addScaledVector(snakeView.dirVec, 1.4);
-    const sway = THREE.MathUtils.clamp(-head.x * 0.02, -0.22, 0.22);
-    const dist = 12 * fit, height = 11.5 * fit;
-    desired.set(camTarget.x + Math.sin(sway) * dist, height, camTarget.z + Math.cos(sway) * dist + 1.5);
-    look.copy(camTarget).setY(0);
-  }
+  const fit = fitFor(aspect);
+  if (state === 'attract' || state === 'attract-dying' || state === 'over') orbitPose(t, fit, aspect, state !== 'over', desired, look);
+  else if (camMode === 'top') topPose(fit, desired, look);
+  else followPose(snakeView.headPos, snakeView.dirVec, fit, desired, look);
   const k = 1 - Math.exp(-dt * (state === 'attract' ? 1.5 : 3.2));
   camPosS.lerp(desired, k);
   camLook.lerp(look, k);
   camera.position.copy(camPosS);
   // screen shake (trauma^2)
   const tr = fx.trauma * fx.trauma;
-  if (tr > 0.001) {
-    camera.position.x += (Math.sin(t * 61.3) + Math.sin(t * 97.1)) * 0.35 * tr;
-    camera.position.y += (Math.sin(t * 73.7) + Math.sin(t * 51.9)) * 0.3 * tr;
-    camera.position.z += Math.sin(t * 89.3) * 0.3 * tr;
-  }
+  if (tr > 0.001) camera.position.add(shakeOffset(t, tr, shakeV));
   camera.lookAt(camLook);
   if (tr > 0.001) camera.rotation.z += Math.sin(t * 43.1) * 0.03 * tr;
   const baseFov = aspect < 1 ? 58 : 50;
@@ -367,6 +346,7 @@ function snakePoints() {
   return pts;
 }
 
+const occFocus = [new THREE.Vector3(), new THREE.Vector3()];
 let last = performance.now();
 let time = 0;
 let fpsFrames = 0, fpsTime = 0, fps = 0;
@@ -443,6 +423,9 @@ function frame(now) {
   bloom.strength = BLOOM + fx.aberr * 0.08;
 
   updateCamera(time, rdt);
+  occFocus[0].copy(snakeView.headPos).setY(0.4);
+  if (game.food) cellToWorld(game.food.x, game.food.z, occFocus[1]).setY(0.4); else occFocus[1].copy(occFocus[0]);
+  world.updateOcclusion(camera.position, rdt, occFocus);
   if (state === 'playing' || state === 'paused' || state === 'dying') ui.update(game, Math.max(hi, game.score));
   composer.render(rdt);
 }
@@ -483,4 +466,7 @@ window.__snake = {
   setAutopilot(b) { autopilot = b; },
   levelTo(n) { game.level = n - 1; game.levelUp(); },
   renderer,
+  // occlusion test hooks (tests/occlusion.py)
+  THREE, world, camera, rig, cellToWorld, snakeView,
+  get camMode() { return camMode; }, setCamMode(m) { camMode = m; },
 };

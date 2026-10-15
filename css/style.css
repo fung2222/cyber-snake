@@ -201,7 +201,7 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
   .screen.hero .neon-btn { margin: 0 auto; }
 }
 
-/* ---- v0.3.4: unified home menu layout (polished) ----
+/* ---- v0.3.5: unified home menu layout (pointer-events fix) ----
    Top-left: Arcade Menu only. Top-right: lang (+ privacy/chips).
    Brand + primary CTA: true viewport centre (H+V). Meta: bottom, centre-aligned. */
 .menu-home {
@@ -216,7 +216,7 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  touch-action: manipulation; /* taps on Start must fire; pan-y was swallowing clicks */
   /* keep .screen { position:fixed; inset:0 } — do NOT set relative (collapses height) */
 }
 .menu-top {
@@ -303,7 +303,7 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  pointer-events: none;
+  pointer-events: auto; /* must receive clicks; none on ancestor breaks Start on some WebKit/touch */
 }
 .menu-home.hero .menu-body {
   text-align: center;
@@ -323,14 +323,6 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
   margin: 0;
   gap: 0;
   z-index: 1;
-  pointer-events: none;
-}
-.menu-mid .menu-brand,
-.menu-mid .menu-cta,
-.menu-mid .neon-btn,
-.menu-mid .mode-card,
-.menu-mid .gcard,
-.menu-mid button {
   pointer-events: auto;
 }
 .menu-brand {
@@ -389,20 +381,21 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
 /* Bottom meta: always centre-aligned */
 .menu-meta {
   position: absolute;
-  left: 0; right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   bottom: max(18px, env(safe-area-inset-bottom));
   flex: 0 0 auto;
   margin: 0;
   padding: 0 clamp(16px, 4vw, 32px);
-  max-width: none;
-  width: 100%;
+  max-width: min(520px, 100%);
+  width: max-content;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  pointer-events: none;
-  z-index: 2;
+  pointer-events: none; /* decorative; never steal Start clicks */
+  z-index: 0;
 }
 .menu-meta,
 .menu-meta .controls,

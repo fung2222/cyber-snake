@@ -119,7 +119,7 @@ addStrings({
   'kit.rewardOffline': ['暫時冇廣告可以睇，遲啲再試下。', 'No ad available right now. Try again later.'],
   'kit.glow': ['光暈：{v}', 'GLOW: {v}'], 'kit.glowLow': ['低', 'LOW'], 'kit.glowHigh': ['高', 'HIGH'], 'kit.glowHint': ['畫面光暈強度（所有遊戲通用）', 'Neon glow strength (all CYBER games)'],
   'kit.endless': ['無盡模式', 'ENDLESS'], 'kit.bestEndless': ['無盡紀錄', 'ENDLESS BEST'], 'kit.language': ['語言', 'LANGUAGE'],
-  'kit.arcadeMenu': ['選單 · 其他遊戲', 'ARCADE MENU'], 'kit.arcadeMenuS': ['其他遊戲', 'OTHER GAMES'],
+  'kit.arcadeMenu': ['選單 · 其他遊戲', 'ARCADE MENU'], 'kit.arcadeMenuS': ['ARCADE MENU', '選單 · 其他遊戲'],
   'kit.adsimRewarded': ['獎勵廣告示範', 'REWARDED AD (SIM)'], 'kit.adsimInter': ['插頁廣告示範', 'INTERSTITIAL (SIM)'], 'kit.adsimNote': ['?adsim=1 · 只係測試，唔係真廣告', '?adsim=1 · test only, not a real ad'],
 });
 

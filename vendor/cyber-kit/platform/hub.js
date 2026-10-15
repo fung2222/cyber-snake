@@ -12,7 +12,7 @@ import { addStrings } from '../core/i18n.js';
 
 addStrings({
   'kit.arcadeMenu': ['選單 · 其他遊戲', 'ARCADE MENU'],
-  'kit.arcadeMenuS': ['其他遊戲', 'OTHER GAMES'],
+  'kit.arcadeMenuS': ['ARCADE MENU', '選單 · 其他遊戲'],
 });
 
 const TIERS = ['free', 'silver', 'gold'];

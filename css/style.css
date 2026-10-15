@@ -201,9 +201,9 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
   .screen.hero .neon-btn { margin: 0 auto; }
 }
 
-/* ---- v0.3.3: unified home menu layout ----
-   Zones: menu-top (options) → menu-brand (logo breathing room) → menu-cta (primary Start) → menu-meta
-   Use on #screen-start with class "menu-home" (keep .hero for desktop left wash). */
+/* ---- v0.3.4: unified home menu layout (polished) ----
+   Top-left: Arcade Menu only. Top-right: lang (+ privacy/chips).
+   Brand + primary CTA: true viewport centre (H+V). Meta: bottom, centre-aligned. */
 .menu-home {
   display: flex !important;
   flex-direction: column;
@@ -217,17 +217,22 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
+  /* keep .screen { position:fixed; inset:0 } — do NOT set relative (collapses height) */
 }
 .menu-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
   flex: 0 0 auto;
   display: flex;
+  flex-wrap: nowrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 6px max(14px, env(safe-area-inset-left));
+  padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left));
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
+  box-sizing: border-box;
 }
 .menu-top-left, .menu-top-right {
   display: flex;
@@ -235,9 +240,22 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
   align-items: center;
   gap: 8px;
   pointer-events: auto;
-  max-width: min(100%, 560px);
 }
-.menu-top-right { justify-content: flex-end; margin-left: auto; }
+/* Arcade Menu stays top-left — never full-width / reordered to centre */
+.menu-top-left {
+  flex: 0 1 auto;
+  justify-content: flex-start;
+  max-width: min(70vw, 420px);
+  order: 0 !important;
+  width: auto !important;
+}
+.menu-top-right {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  margin-left: auto;
+  order: 0 !important;
+  max-width: none;
+}
 .menu-top .neon-btn {
   margin: 0 !important;
   min-width: 0;
@@ -272,42 +290,76 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
 }
 .menu-chip b { font-size: 14px; color: #fff; font-family: 'Orbitron', sans-serif; }
+
+/* Full-viewport centre stack: brand + CTA */
 .menu-body {
-  flex: 1 1 auto;
+  /* fill the screen so absolute mid/meta resolve against full viewport */
+  position: absolute;
+  inset: 0;
+  display: block;
+  text-align: center;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+.menu-home.hero .menu-body {
+  text-align: center;
+}
+/* Brand + primary CTA float on true viewport centre */
+.menu-mid {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  min-height: 0;
-  width: 100%;
-  max-width: 640px;
-  padding: clamp(4px, 1.5vh, 16px) clamp(20px, 7vw, 120px) max(20px, env(safe-area-inset-bottom));
-  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: min(560px, calc(100% - 32px));
+  margin: 0;
+  gap: 0;
+  z-index: 1;
+  pointer-events: none;
 }
-.menu-home.hero .menu-body { align-items: flex-start; text-align: left; }
+.menu-mid .menu-brand,
+.menu-mid .menu-cta,
+.menu-mid .neon-btn,
+.menu-mid .mode-card,
+.menu-mid .gcard,
+.menu-mid button {
+  pointer-events: auto;
+}
 .menu-brand {
   flex: 0 0 auto;
-  margin: 0 0 clamp(12px, 2vh, 28px);
-  max-width: 560px;
+  margin: 0 auto clamp(14px, 2.8vh, 28px);
+  max-width: 100%;
+  width: 100%;
+  text-align: center;
 }
 .menu-brand .kicker { margin-bottom: 8px; }
 .menu-brand .title { margin: 0; }
-.menu-brand .title-en { margin: 6px 0 12px; }
+.menu-brand .title-en { margin: 6px auto 12px; }
 .menu-brand .tagline,
-.menu-brand .subtitle { margin: 0 0 0; }
+.menu-brand .subtitle { margin-left: auto; margin-right: auto; }
 .menu-brand .tagline { margin-top: 10px; opacity: .9; }
 .menu-brand .trial-note,
-.menu-brand .trial-tag { margin: 12px 0 0; }
+.menu-brand .trial-tag { margin: 12px auto 0; }
+
 .menu-cta {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   width: 100%;
   max-width: 520px;
-  margin-top: auto; /* sit in vertical centre of remaining space */
+  margin: 0 auto;
 }
-.menu-cta .neon-btn { margin: 0; }
+.menu-cta .neon-btn { margin: 0 auto; }
 .menu-cta .neon-btn + .neon-btn { margin-top: 0 !important; }
 .menu-cta .mode-row,
 .menu-cta .btn-row,
@@ -315,60 +367,93 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
 .menu-cta .mode-list,
 .menu-cta .game-grid {
   width: 100%;
-  margin: 0;
+  margin: 0 auto;
+  justify-content: center;
 }
-.menu-meta {
-  flex: 0 0 auto;
-  margin-top: auto; /* pin meta toward bottom; equal flex space above CTA */
-  padding-top: clamp(16px, 3vh, 36px);
-  max-width: 520px;
+.menu-cta .menu-btns { align-items: stretch; width: fit-content; max-width: 100%; }
+.menu-cta .menu-sec {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
   width: 100%;
+  margin-top: 2px;
+}
+.menu-cta .menu-sec .neon-btn {
+  animation: none !important;
+  min-width: 0;
+  font-size: 15px;
+  padding: 9px 16px;
+}
+
+/* Bottom meta: always centre-aligned */
+.menu-meta {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0 clamp(16px, 4vw, 32px);
+  max-width: none;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  pointer-events: none;
+  z-index: 2;
+}
+.menu-meta,
+.menu-meta .controls,
+.menu-meta .controls-hint,
+.menu-meta .hi-line,
+.menu-meta .touch-hint,
+.menu-meta .keys-hint {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center !important;
+  max-width: min(520px, 100%);
 }
 .menu-meta .controls,
-.menu-meta .controls-hint { margin-top: 0; }
-.menu-meta .hi-line { margin-top: 10px; }
-.menu-meta .link-row { display: none; } /* privacy/lang live in menu-top */
+.menu-meta .controls-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 0;
+  margin-bottom: 8px;
+  line-height: 1.85;
+}
+.menu-meta .controls > div,
+.menu-meta .controls-hint > div {
+  width: 100%;
+  text-align: center !important;
+}
+.menu-meta .hi-line { margin-top: 4px; width: 100%; }
+.menu-meta .link-row { display: none; }
 .menu-home #btn-arcade-menu { margin-top: 0; animation: none; }
 
 @media (max-width: 760px) {
   .menu-home {
     background: radial-gradient(ellipse at center, rgba(5,1,15,.45), rgba(5,1,15,.85)) !important;
   }
-  .menu-body {
-    align-items: center !important;
-    text-align: center;
-    max-width: none;
-    padding: 8px max(16px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  .menu-top {
+    flex-wrap: nowrap;
+    row-gap: 0;
   }
-  .menu-brand {
-    margin-bottom: clamp(20px, 4vh, 40px);
-    max-width: 100%;
+  .menu-top-left {
+    max-width: min(62vw, 280px);
   }
-  .menu-brand .tagline { margin-left: auto; margin-right: auto; }
-  .menu-cta {
-    align-items: center;
-    max-width: 100%;
-  }
-  .menu-cta .neon-btn { margin-left: auto; margin-right: auto; }
-  .menu-cta .mode-row,
-  .menu-cta .btn-row { justify-content: center; }
-  .menu-cta .menu-btns { align-items: stretch; width: 100%; }
-  .menu-meta {
-    max-width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .menu-top { flex-wrap: wrap; row-gap: 8px; }
-  .menu-top-right { max-width: 100%; width: auto; flex: 1 1 auto; justify-content: flex-end; }
-  .menu-top-left { max-width: 100%; width: 100%; justify-content: center; order: 2; }
-  .menu-top-right { order: 1; }
-  .menu-top .neon-btn { font-size: 12px; padding: 7px 10px; letter-spacing: 2px; }
-  .menu-brand { margin-bottom: clamp(8px, 1.5vh, 18px); }
+  .menu-top .neon-btn { font-size: 11px; padding: 7px 10px; letter-spacing: 2px; }
+  .menu-mid { width: min(520px, calc(100% - 28px)); }
+  .menu-brand { margin-bottom: clamp(14px, 2.5vh, 28px); max-width: 100%; }
+  .menu-cta { max-width: 100%; }
+  .menu-cta .menu-btns, .menu-cta .menu-btns .neon-btn { width: 100%; min-width: 0; }
+  .menu-cta .mode-row .neon-btn,
+  .menu-cta .btn-row .neon-btn { min-width: 0; flex: 1; }
 }
-
 @media (max-height: 560px) and (min-width: 761px) {
-  .menu-brand { margin-bottom: 8px; }
+  .menu-brand { margin-bottom: 10px; }
   .menu-meta .controls, .menu-meta .controls-hint { display: none; }
-  .menu-meta { padding-top: 10px; }
+  .menu-mid { transform: translate(-50%, -46%); }
 }

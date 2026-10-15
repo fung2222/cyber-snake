@@ -188,3 +188,5 @@ kbd { display: inline-block; min-width: 24px; padding: 1px 6px; margin: 0 2px; f
 html[data-lang="en"] .title, html[data-lang="en"] .title2, html[data-lang="en"] .banner-main { letter-spacing: 3px; font-family: 'Orbitron', sans-serif; }
 html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
 @media (max-width: 700px), (orientation: portrait) { #screen-start .link-row { justify-content: center; } }
+
+/* hub return */ #btn-arcade-menu { margin-top: 10px; animation: none; }

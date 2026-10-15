@@ -15,6 +15,7 @@ import { SnakeGame } from './game.js';
 import { aiChoose } from './ai.js';
 import { themeFor, targetFor, AUTHORED_LEVELS, MILESTONE_EVERY, milestoneBonus } from './levels.js';
 import { i18n, t as tr } from '../vendor/cyber-kit/core/i18n.js';
+import { readHub, returnToHub, shouldShowArcadeMenu } from '../vendor/cyber-kit/platform/hub.js';
 import './strings.js';
 import { AudioEngine } from './audio.js';
 import { UI } from './ui.js';
@@ -279,6 +280,10 @@ on('btn-pause', () => { if (state === 'playing' || state === 'paused') pauseTogg
 on('btn-cam', () => { camMode = camMode === 'follow' ? 'top' : 'follow'; });
 on('btn-mute', () => { audio.init(); ui.setMuted(audio.toggleMute()); });
 i18n.bindToggle(document.getElementById('btn-lang')); i18n.bindToggle(document.getElementById('btn-lang2'));
+const __hub = readHub();
+if (shouldShowArcadeMenu(__hub)) { const b = document.getElementById('btn-arcade-menu'); if (b) b.classList.remove('hidden'); }
+document.getElementById('btn-arcade-menu')?.addEventListener('click', (ev) => { ev.stopPropagation(); returnToHub({ gameId: 'cyber-snake', openStore: false }); });
+
 { const gb = document.getElementById('btn-glow');
   if (gb) gb.addEventListener('click', (e) => { e.stopPropagation(); glow = glow === 'high' ? 'low' : 'high'; try { localStorage.setItem('cyber.glow', glow); } catch (err) { /* ignore */ } applyGlow(); gb.blur(); }); }
 i18n.onChange(() => applyGlow());

@@ -189,4 +189,186 @@ html[data-lang="en"] .title, html[data-lang="en"] .title2, html[data-lang="en"] 
 html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
 @media (max-width: 700px), (orientation: portrait) { #screen-start .link-row { justify-content: center; } }
 
-/* hub return */ #btn-arcade-menu { margin-top: 10px; animation: none; }
+/* hub return */ #btn-arcade-menu { margin-top: 0; animation: none; }
+
+/* hero alias (menu-home uses .hero) */
+.screen.hero { background: linear-gradient(90deg, rgba(5,1,15,.88) 0%, rgba(5,1,15,.55) 38%, rgba(5,1,15,0) 62%); justify-content: flex-start; padding-left: clamp(20px, 7vw, 120px); }
+.screen.hero .panel { text-align: left; background: transparent; border: 0; box-shadow: none; backdrop-filter: none; clip-path: none; padding: 0; }
+.screen.hero .neon-btn { margin: 0; animation: pulseBtn 2.2s ease-in-out infinite; }
+@media (max-width: 760px) {
+  .screen.hero { justify-content: center; padding-left: 20px; background: radial-gradient(ellipse at center, rgba(5,1,15,.45), rgba(5,1,15,.85)); }
+  .screen.hero .panel { text-align: center; }
+  .screen.hero .neon-btn { margin: 0 auto; }
+}
+
+/* ---- v0.3.3: unified home menu layout ----
+   Zones: menu-top (options) → menu-brand (logo breathing room) → menu-cta (primary Start) → menu-meta
+   Use on #screen-start with class "menu-home" (keep .hero for desktop left wash). */
+.menu-home {
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch !important;
+  padding: 0 !important;
+  padding-left: 0 !important;
+  gap: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+.menu-top {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 6px max(14px, env(safe-area-inset-left));
+  pointer-events: none;
+  z-index: 2;
+}
+.menu-top-left, .menu-top-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+  max-width: min(100%, 560px);
+}
+.menu-top-right { justify-content: flex-end; margin-left: auto; }
+.menu-top .neon-btn {
+  margin: 0 !important;
+  min-width: 0;
+  animation: none !important;
+  font-size: 13px;
+  padding: 8px 14px;
+  letter-spacing: 3px;
+}
+.menu-top .neon-btn small { font-size: 8px; letter-spacing: 2px; }
+.menu-privacy {
+  font-family: var(--font-zh);
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: color-mix(in srgb, var(--c1) 70%, white);
+  text-decoration: none;
+  opacity: .75;
+  pointer-events: auto;
+  padding: 8px 4px;
+}
+.menu-privacy:hover { opacity: 1; text-decoration: underline; }
+.menu-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--c3);
+  text-shadow: 0 0 6px var(--c3);
+  border: 1px solid color-mix(in srgb, var(--c3) 45%, transparent);
+  background: rgba(10, 4, 30, .45);
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+.menu-chip b { font-size: 14px; color: #fff; font-family: 'Orbitron', sans-serif; }
+.menu-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 0;
+  width: 100%;
+  max-width: 640px;
+  padding: clamp(4px, 1.5vh, 16px) clamp(20px, 7vw, 120px) max(20px, env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+.menu-home.hero .menu-body { align-items: flex-start; text-align: left; }
+.menu-brand {
+  flex: 0 0 auto;
+  margin: 0 0 clamp(12px, 2vh, 28px);
+  max-width: 560px;
+}
+.menu-brand .kicker { margin-bottom: 8px; }
+.menu-brand .title { margin: 0; }
+.menu-brand .title-en { margin: 6px 0 12px; }
+.menu-brand .tagline,
+.menu-brand .subtitle { margin: 0 0 0; }
+.menu-brand .tagline { margin-top: 10px; opacity: .9; }
+.menu-brand .trial-note,
+.menu-brand .trial-tag { margin: 12px 0 0; }
+.menu-cta {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  max-width: 520px;
+  margin-top: auto; /* sit in vertical centre of remaining space */
+}
+.menu-cta .neon-btn { margin: 0; }
+.menu-cta .neon-btn + .neon-btn { margin-top: 0 !important; }
+.menu-cta .mode-row,
+.menu-cta .btn-row,
+.menu-cta .menu-btns,
+.menu-cta .mode-list,
+.menu-cta .game-grid {
+  width: 100%;
+  margin: 0;
+}
+.menu-meta {
+  flex: 0 0 auto;
+  margin-top: auto; /* pin meta toward bottom; equal flex space above CTA */
+  padding-top: clamp(16px, 3vh, 36px);
+  max-width: 520px;
+  width: 100%;
+}
+.menu-meta .controls,
+.menu-meta .controls-hint { margin-top: 0; }
+.menu-meta .hi-line { margin-top: 10px; }
+.menu-meta .link-row { display: none; } /* privacy/lang live in menu-top */
+.menu-home #btn-arcade-menu { margin-top: 0; animation: none; }
+
+@media (max-width: 760px) {
+  .menu-home {
+    background: radial-gradient(ellipse at center, rgba(5,1,15,.45), rgba(5,1,15,.85)) !important;
+  }
+  .menu-body {
+    align-items: center !important;
+    text-align: center;
+    max-width: none;
+    padding: 8px max(16px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+  .menu-brand {
+    margin-bottom: clamp(20px, 4vh, 40px);
+    max-width: 100%;
+  }
+  .menu-brand .tagline { margin-left: auto; margin-right: auto; }
+  .menu-cta {
+    align-items: center;
+    max-width: 100%;
+  }
+  .menu-cta .neon-btn { margin-left: auto; margin-right: auto; }
+  .menu-cta .mode-row,
+  .menu-cta .btn-row { justify-content: center; }
+  .menu-cta .menu-btns { align-items: stretch; width: 100%; }
+  .menu-meta {
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .menu-top { flex-wrap: wrap; row-gap: 8px; }
+  .menu-top-right { max-width: 100%; width: auto; flex: 1 1 auto; justify-content: flex-end; }
+  .menu-top-left { max-width: 100%; width: 100%; justify-content: center; order: 2; }
+  .menu-top-right { order: 1; }
+  .menu-top .neon-btn { font-size: 12px; padding: 7px 10px; letter-spacing: 2px; }
+  .menu-brand { margin-bottom: clamp(8px, 1.5vh, 18px); }
+}
+
+@media (max-height: 560px) and (min-width: 761px) {
+  .menu-brand { margin-bottom: 8px; }
+  .menu-meta .controls, .menu-meta .controls-hint { display: none; }
+  .menu-meta { padding-top: 10px; }
+}

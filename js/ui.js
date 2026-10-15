@@ -24,7 +24,13 @@ export class UI {
   }
 
   show(name) {
-    for (const k of ['start', 'pause', 'over']) this.el[k].classList.toggle('hidden', k !== name);
+    for (const k of ['start', 'pause', 'over']) {
+      const e = this.el[k]; if (!e) continue;
+      const on = k === name;
+      e.classList.toggle('hidden', !on);
+      if (on) e.style.removeProperty('display');
+      else e.style.setProperty('display', 'none', 'important');
+    }
   }
   hud(on) { this.el.hud.classList.toggle('hidden', !on); }
 

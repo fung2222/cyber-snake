@@ -106,9 +106,10 @@ export class SnakeView {
   }
 
   // positions: array of THREE.Vector3 interpolated segment centres (head first)
-  update(t, dt, pts, dir, alive) {
+  update(t, dt, pts, dir, alive, boosting = false) {
     const n = pts.length;
     this.c1.copy(U.uC1.value); this.c2.copy(U.uC2.value);
+    this.boosting = !!boosting;
     // head
     const hp = pts[0];
     this.headPos.copy(hp);
@@ -126,6 +127,10 @@ export class SnakeView {
     if (this.deadCount === 0) { this.headMat.userData.u.uGlowColor.value.setRGB(3 * dyingFlash, 0.1, 0.3); this.visorLineMat.color.setRGB(8 * dyingFlash, 0.2, 0.6); }
     this.finMat.color.copy(this.c2).multiplyScalar(4);
     this.light.color.copy(this.c1);
+    this.light.intensity = boosting ? 11 : 6;
+    this.light.distance = boosting ? 11 : 8;
+    if (boosting) this.headMat.userData.u.uBoost.value = 0.85 + Math.sin(t * 28) * 0.15;
+    else this.headMat.userData.u.uBoost.value = 0;
     const sx = Math.sin(t * 4.2) * 0.3;
     this.scanDot.position.set(sx, 0.08, Math.sqrt(Math.max(0, 1 - (sx / 0.5) ** 2)) * 0.55 + 0.05);
     const blinkEyes = (t % 4) < 0.08 ? 0.1 : 1;
@@ -186,7 +191,7 @@ export class SnakeView {
     this.rings.count = r;
     this.rings.instanceMatrix.needsUpdate = true;
     if (this.rings.instanceColor) this.rings.instanceColor.needsUpdate = true;
-    this.bodyMat.userData.u.uBoost.value = alive ? 0 : 0.6;
+    this.bodyMat.userData.u.uBoost.value = !alive ? 0.6 : (boosting ? 0.55 : 0);
   }
 
   flash() { this.flashT = 0; }
@@ -263,22 +268,26 @@ export class FoodView {
 
   setColor(c) { this.color.copy(c); }
 
-  show(pos) { this.root.position.copy(pos); this.spawnT = 0; this.active = true; this.root.visible = true; }
-  hide() { this.active = false; this.root.visible = false; }
+  show(pos, special = false) {
+    this.root.position.copy(pos); this.spawnT = 0; this.active = true; this.root.visible = true;
+    this.special = !!special;
+  }
+  hide() { this.active = false; this.root.visible = false; this.special = false; }
 
   update(t, dt) {
     if (!this.active) return;
     this.spawnT += dt;
     const s = this.spawnT < 0.5 ? easeOutBack(this.spawnT / 0.5) : 1;
-    const pulse = 1 + Math.sin(t * 5) * 0.08;
-    this.group.scale.setScalar(s * pulse);
+    const pulse = 1 + Math.sin(t * (this.special ? 8 : 5)) * (this.special ? 0.14 : 0.08);
+    this.group.scale.setScalar(s * pulse * (this.special ? 1.18 : 1));
     this.group.position.y = 0.6 + Math.sin(t * 2.2) * 0.1;
     this.shell.rotation.set(t * 0.7, t * 1.1, 0);
     this.cube.rotation.set(-t * 0.5, -t * 0.8, t * 0.3);
     this.ring.rotation.set(Math.PI / 2 + Math.sin(t) * 0.4, t * 1.5, 0);
     this.ring2.rotation.set(Math.PI / 2 - 0.6, -t * 2.1, 0.3);
     const c = this.color;
-    this.coreMat.color.copy(c).multiplyScalar(6 + Math.sin(t * 8) * 1.5);
+    const bright = this.special ? (9 + Math.sin(t * 12) * 2) : (6 + Math.sin(t * 8) * 1.5);
+    this.coreMat.color.copy(c).multiplyScalar(bright);
     this.shellMat.color.copy(c).multiplyScalar(3);
     this.ringMat.color.copy(c).multiplyScalar(3.5);
     this.holoMat.color.copy(c);

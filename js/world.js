@@ -590,8 +590,9 @@ export class World {
           uv.x += gl * (fract(sin(floor(uv.y * 30.0) + uTime) * 999.0) - 0.5) * 0.06;
           vec4 t = texture2D(tMap, uv);
           float scan = 0.75 + 0.25 * sin(uv.y * 300.0 - uTime * 6.0);
-          float flick = 0.9 + 0.1 * sin(uTime * 37.0) * sin(uTime * 13.0);
-          vec3 col = t.rgb * t.a * scan * flick * 2.2;
+          float flick = 0.86 + 0.14 * sin(uTime * 37.0) * sin(uTime * 13.0);
+          float drop = step(0.992, fract(sin(floor(uTime * 5.5)) * 7919.0));
+          vec3 col = t.rgb * t.a * scan * flick * (2.15 - drop * 0.85);
           float dist = length(vW - cameraPosition);
           float f = exp(-uFogDensity*uFogDensity*dist*dist*0.5);
           gl_FragColor = vec4(col * f, 1.0);
@@ -639,8 +640,8 @@ export class World {
           gl_Position = projectionMatrix * mv;
         }`,
       fragmentShader: /* glsl */`uniform vec3 uC1; varying float vA; varying float vD;
-        void main(){ float a = (1.0 - vA) * 0.22 * smoothstep(1.0, 4.0, vD) * exp(-vD * 0.02);
-          gl_FragColor = vec4(mix(vec3(0.6, 0.75, 1.0), uC1, 0.3) * a, 1.0); }`,
+        void main(){ float a = (1.0 - vA) * 0.26 * smoothstep(1.0, 4.0, vD) * exp(-vD * 0.02);
+          gl_FragColor = vec4(mix(vec3(0.55, 0.72, 1.0), uC1, 0.42) * a, 1.0); }`,
     });
     const rain = new THREE.LineSegments(geo, mat);
     rain.frustumCulled = false;
@@ -754,7 +755,8 @@ export class World {
     for (const p of this.pylonLights) { p.rotation.y = t * 1.5; p.position.y = 3.1 + Math.sin(t * 2) * 0.1; }
     for (const f of this.flicker) {
       const n = Math.sin(t * 23 + f.seed) * Math.sin(t * 7.1 + f.seed * 2);
-      const on = n > -0.85 ? 1 : 0.15;
+      const buzz = Math.sin(t * 61 + f.seed * 3);
+      const on = n > -0.82 ? (buzz > 0.92 ? 0.45 : 1) : 0.12;
       f.mat.color.setScalar(f.base * on);
     }
     this.scene.fog.color.copy(U.uFogColor.value);

@@ -5,10 +5,14 @@ export const DIRS = {
   up: { x: 0, z: -1 }, down: { x: 0, z: 1 }, left: { x: -1, z: 0 }, right: { x: 1, z: 0 },
 };
 const COMBO_WINDOW = 3.6; // seconds
+export const BOOST_DURATION = 0.85;
+export const BOOST_COOLDOWN = 2.4;
+export const BOOST_MULT = 1.85; // tick rate multiplier while boosting
+const SPECIAL_CHANCE = 0.18;
 
 export class SnakeGame {
   constructor(events = {}) {
-    this.ev = events; // callbacks: onEat, onDie, onLevelUp, onTurn, onSpawnFood
+    this.ev = events; // callbacks: onEat, onDie, onLevelUp, onTurn, onSpawnFood, onBoostStart, onBoostEnd
     this.hi = 0;
     this.reset(1);
   }
@@ -32,6 +36,11 @@ export class SnakeGame {
     this.acc = 0;
     this.interval = speedFor(level);
     this.frozen = 0; // seconds of logic freeze (level-up transition)
+    this.boostHeld = false;
+    this.boosting = false;
+    this.boostT = 0;
+    this.boostCd = 0;
+    this.foodSpecial = false;
     this.setObstacles(layoutFor(level));
     this.spawnFood();
   }
@@ -71,8 +80,9 @@ export class SnakeGame {
       free.push({ x, z });
     }
     this.food = free.length ? free[Math.floor(Math.random() * free.length)] : null;
+    this.foodSpecial = !!(this.food && (Math.random() < SPECIAL_CHANCE || this.totalEaten > 0 && this.totalEaten % 7 === 0));
     this.foodSpawnTime = performance.now();
-    this.ev.onSpawnFood && this.ev.onSpawnFood(this.food);
+    this.ev.onSpawnFood && this.ev.onSpawnFood(this.food, this.foodSpecial);
   }
 
   // Input buffering: up to 2 queued turns, no 180° reversal relative to last queued dir
@@ -86,16 +96,49 @@ export class SnakeGame {
     return true;
   }
 
+  setBoost(held) {
+    this.boostHeld = !!held;
+    if (held && !this.boosting && this.boostCd <= 0 && !this.dead && this.frozen <= 0) {
+      this.boosting = true;
+      this.boostT = BOOST_DURATION;
+      this.ev.onBoostStart && this.ev.onBoostStart();
+    }
+  }
+
+  get boostFrac() {
+    if (this.boosting) return Math.max(0, this.boostT / BOOST_DURATION);
+    if (this.boostCd > 0) return -Math.min(1, this.boostCd / BOOST_COOLDOWN);
+    return this.boostHeld ? 0 : 1;
+  }
+
   get alpha() { return Math.min(1, this.acc / this.interval); }
 
   update(dt) {
     if (this.dead) return;
     if (this.comboTimer > 0) { this.comboTimer -= dt; if (this.comboTimer <= 0) this.combo = 0; }
+    // boost timers
+    if (this.boosting) {
+      this.boostT -= dt;
+      if (this.boostT <= 0 || !this.boostHeld) {
+        this.boosting = false;
+        this.boostT = 0;
+        this.boostCd = BOOST_COOLDOWN;
+        this.ev.onBoostEnd && this.ev.onBoostEnd();
+      }
+    } else if (this.boostCd > 0) {
+      this.boostCd -= dt;
+      if (this.boostCd <= 0) {
+        this.boostCd = 0;
+        if (this.boostHeld) this.setBoost(true);
+      }
+    }
     if (this.frozen > 0) {
       this.frozen -= dt;
       if (this.frozen < 0.45 && !this.food) this.spawnFood();
       return;
     }
+    const base = speedFor(this.level);
+    this.interval = this.boosting ? base / BOOST_MULT : base;
     this.acc += dt;
     let steps = 0;
     while (this.acc >= this.interval && steps < 4 && !this.dead && this.frozen <= 0) {
@@ -110,8 +153,9 @@ export class SnakeGame {
     if (this.ev.beforeStep) this.ev.beforeStep(this);
     if (this.queue.length) {
       const nd = this.queue.shift();
+      const prev = { ...this.dir };
       this.dir = nd;
-      this.ev.onTurn && this.ev.onTurn(nd);
+      this.ev.onTurn && this.ev.onTurn(nd, prev);
     }
     const head = this.snake[0];
     const nx = head.x + this.dir.x, nz = head.z + this.dir.z;
@@ -126,6 +170,7 @@ export class SnakeGame {
       this.dead = true; this.deathReason = reason;
       this.prev = this.snake.map(s => ({ ...s }));
       this.acc = this.interval;
+      if (this.boosting) { this.boosting = false; this.boostCd = BOOST_COOLDOWN; this.ev.onBoostEnd && this.ev.onBoostEnd(); }
       this.ev.onDie && this.ev.onDie(reason, { x: nx, z: nz });
       return;
     }
@@ -140,13 +185,16 @@ export class SnakeGame {
     this.grow += 1;
     this.combo = this.comboTimer > 0 ? this.combo + 1 : 1;
     this.comboTimer = COMBO_WINDOW;
+    const special = this.foodSpecial;
     const mult = 1 + Math.min(this.combo - 1, 4) * 0.5;
-    const pts = Math.round(pointsFor(this.level) * mult);
+    const specialMult = special ? 2 : 1;
+    const pts = Math.round(pointsFor(this.level) * mult * specialMult);
     this.score += pts;
     this.eatenThisLevel++;
     this.totalEaten++;
+    const tier = special ? 'special' : (this.combo >= 3 ? 'combo' : 'normal');
     const at = { ...this.food };
-    this.ev.onEat && this.ev.onEat({ at, pts, mult, combo: this.combo });
+    this.ev.onEat && this.ev.onEat({ at, pts, mult: mult * specialMult, combo: this.combo, special, tier });
     if (this.eatenThisLevel >= targetFor(this.level)) {
       this.levelUp();
     } else {
@@ -161,10 +209,13 @@ export class SnakeGame {
     this.queue.length = 0;
     this.frozen = 1.9;
     this.acc = 0;
+    this.boosting = false;
+    this.boostT = 0;
     this.prev = this.snake.map(s => ({ ...s }));
     const oldObstacles = this.obstacles;
     this.setObstacles(layoutFor(this.level));
     this.food = null;
+    this.foodSpecial = false;
     this.ev.onLevelUp && this.ev.onLevelUp(this.level, oldObstacles);
   }
 

@@ -13,6 +13,7 @@ export class UI {
       popups: $('popups'), flash: $('fx-flash'), mute: $('btn-mute'), fps: $('fps'), demo: $('demo-tag'),
       overScore: $('over-score'), overLevel: $('over-level'), overLength: $('over-length'), overHi: $('over-hi'), overReason: $('over-reason'), newrecord: $('newrecord'),
       loading: $('loading'),
+      boost: $('btn-boost'), boostFill: $('boost-fill'), hint: $('btn-hint'),
     };
     this.last = {};
     this.lastTarget = -1;
@@ -65,15 +66,41 @@ export class UI {
       if (this.el.comboVal.textContent !== txt) { this.el.comboVal.textContent = txt; this.el.combo.classList.remove('pop'); void this.el.combo.offsetWidth; this.el.combo.classList.add('pop'); }
       this.el.comboFill.style.width = Math.max(0, g.comboTimer / 3.6 * 100) + '%';
     }
+    this.updateBoost(g);
   }
 
-  popup(x, y, text, sub = '') {
+  updateBoost(g) {
+    const b = this.el.boost, f = this.el.boostFill;
+    if (!b || !f) return;
+    const frac = g.boostFrac;
+    b.classList.toggle('active', !!g.boosting);
+    b.classList.toggle('cooling', !g.boosting && g.boostCd > 0);
+    b.classList.toggle('ready', !g.boosting && g.boostCd <= 0);
+    if (g.boosting) f.style.width = Math.max(0, frac) * 100 + '%';
+    else if (g.boostCd > 0) f.style.width = (1 + frac) * 100 + '%'; // frac is negative while cooling
+    else f.style.width = '100%';
+  }
+
+  setHint(on) {
+    if (this.el.hint) this.el.hint.classList.toggle('off', !on);
+  }
+
+  popup(x, y, text, sub = '', kind = '') {
     const d = document.createElement('div');
-    d.className = 'popup';
+    d.className = 'popup' + (kind ? ' ' + kind : '');
     d.style.left = x + 'px'; d.style.top = y + 'px';
     d.innerHTML = text + (sub ? `<small>${sub}</small>` : '');
     this.el.popups.appendChild(d);
     setTimeout(() => d.remove(), 1050);
+  }
+
+  comboToast(x, y, n) {
+    const d = document.createElement('div');
+    d.className = 'popup combo-toast';
+    d.style.left = x + 'px'; d.style.top = y + 'px';
+    d.textContent = t('comboText', { n });
+    this.el.popups.appendChild(d);
+    setTimeout(() => d.remove(), 1100);
   }
 
   banner(main, sub, note) {

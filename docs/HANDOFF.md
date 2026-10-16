@@ -46,3 +46,41 @@ Web build has no ads. If packaged: natural break = game-over screen (Retry/Menu)
 - Test hooks on `window.__snake`: `THREE, world, camera, rig, cellToWorld, snakeView, camMode, setCamMode()`; `world.scenery` = every scenery mesh.
 **Test:** `tests/occlusion.py` raycasts (THREE.Raycaster on the real scene, against `world.scenery`) — (1) envelope: follow (head on every cell → head cell; 9 heads → all 400 cells), top, orbit; fits = viewport + 1/1.65/2.3; no shake + 8 shake-box corners; run with `?nofade=1` (structural: zero building/sign/billboard hits in all modes, zero pylon hits in follow/top) and with the fade (zero hits of anything); (2) live game at levels 1–7, 12, 20: follow + top with the snake in all 4 corners and on all 4 edges (level 1) / bottom-right (others), camera transitions, attract orbit — all 400 cells; plus a negative-control self-test (injected tower must be detected). 412×915 touch + 1280×800, seeds 1,2,3. Last run 2026-10-06: ALL PASSED (99 checks), smoke ALL PASSED.
 **Known gaps:** fade on a real 60 fps device takes ≈ 0.1–0.3 s (only reachable during camera swings / pylon diagonals); energy walls/rails, rain, dust and traffic sprites are not treated as occluders (additive/transparent); the envelope is sampled (dense + inflated margins), not analytic. If camera code changes, update `camrig.js` (the layout and the test follow it automatically).
+
+## 8. Feel polish pass (2026-10-17)
+Enhancement pass on the first CYBER game (keep endless + hub=`?hub=1` Arcade Menu; do not rewrite art).
+
+### Boost / speed burst
+- Hold **Shift**, **B**, or **Space** (while playing) for a short tick-rate boost (`BOOST_MULT` 1.85, duration 0.85 s, cooldown 2.4 s).
+- Neon boost trail ribbon + sparkle drip while active; head/body emissive kick.
+- Mobile / touch: on-screen **BOOST** button (bottom-left) with meter (ready / active / cooling).
+- Logic in `js/game.js` (`setBoost`, `boostFrac`); SFX `boostStart` / `boostEnd`.
+
+### Eat-bean VFX + tiers
+- Suck-in swirl (`suckIn`) then layered burst / ring / shockwave.
+- Food can be **special** (~18% or every 7th eat): bigger VFX, ×2 score, warm tint, `tier: special`.
+- Combo eats use `tier: combo` SFX layers. Score popup kinds: `.special` / `.combo-eat`.
+
+### Combo
+- Existing HUD combo bar kept; added floating **COMBO ×N** toast, ground `ComboAura` glow ring, extra shockwave, `audio.combo(n)`.
+
+### Turn trail
+- `onTurn(nd, prev)` emits a short motion streak opposite the previous heading (`turnTrail`).
+
+### Ambient
+- Neon rain slightly more theme-tinted; billboard rare drop-out flicker; shop-sign flicker a touch snappier. Still soft — does not obscure play.
+
+### Near-food hint
+- Very soft additive chevron from head toward food when Manhattan distance ≥ 4 (`FoodHint`). Default **on**; toggle with **H** or HUD hint button; persisted `localStorage cyberSnake.foodHint` (`0` = off).
+
+### SFX
+- Tiered `eat`, `combo`, `boostStart`/`boostEnd`, soft ambient noise bed while music plays (`startAmbient` / `stopAmbient`). Still the local `AudioEngine` (SynthAudio-style primitives, kit loudness chain).
+
+### Controls (additions)
+| Input | Action |
+|---|---|
+| Shift / B / Space (in play) | Boost hold |
+| On-screen BOOST | Boost hold (touch) |
+| H / hint button | Toggle food hint |
+
+Shots: `/workspace/shots/snake-polish/`. Author commits as 嘉豐.

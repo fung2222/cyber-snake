@@ -157,3 +157,149 @@ export const CyberShader = {
       gl_FragColor = vec4(max(col, 0.0), 1.0);
     }`,
 };
+
+// Suck-in swirl toward a point, then caller fires the burst.
+export function suckIn(particles, center, color, count = 36) {
+  const v = new THREE.Vector3(), p = new THREE.Vector3();
+  for (let n = 0; n < count; n++) {
+    const a = Math.random() * Math.PI * 2, r = 1.2 + Math.random() * 2.2;
+    p.set(center.x + Math.cos(a) * r, 0.3 + Math.random() * 1.4, center.z + Math.sin(a) * r);
+    v.set(center.x - p.x, center.y - p.y + 0.2, center.z - p.z).multiplyScalar(3.2 + Math.random() * 2);
+    particles.emit(p, v, color, { life: 0.28 + Math.random() * 0.18, size: 0.7 + Math.random() * 0.5, grav: 0, drag: 0.4, bright: 4 });
+  }
+}
+
+// Short motion streak when the snake turns sharply.
+export function turnTrail(particles, head, fromDir, color, count = 18) {
+  const v = new THREE.Vector3(), p = new THREE.Vector3();
+  const bx = -fromDir.x, bz = -fromDir.z;
+  for (let n = 0; n < count; n++) {
+    const t = n / count;
+    p.set(head.x + bx * t * 0.9 + (Math.random() - 0.5) * 0.15, 0.35 + Math.random() * 0.25, head.z + bz * t * 0.9 + (Math.random() - 0.5) * 0.15);
+    v.set(bx * (2 + Math.random() * 3), 0.5 + Math.random(), bz * (2 + Math.random() * 3));
+    particles.emit(p, v, color, { life: 0.25 + Math.random() * 0.2, size: 0.55, grav: -2, drag: 2.5, bright: 3.5 });
+  }
+}
+
+// Neon boost ribbon samples behind the head.
+export class BoostTrail {
+  constructor(scene, max = 48) {
+    this.max = max;
+    this.pts = [];
+    this.tmpC = new THREE.Color();
+    const pos = new Float32Array(max * 3);
+    const col = new Float32Array(max * 3);
+    const size = new Float32Array(max);
+    const alpha = new Float32Array(max);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('aCol', new THREE.BufferAttribute(col, 3).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('aSize', new THREE.BufferAttribute(size, 1).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('aAlpha', new THREE.BufferAttribute(alpha, 1).setUsage(THREE.DynamicDrawUsage));
+    this.pos = pos; this.col = col; this.size = size; this.alpha = alpha;
+    this.mat = new THREE.ShaderMaterial({
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      uniforms: { uPR: { value: Math.min(devicePixelRatio, 2) }, uH: { value: window.innerHeight } },
+      vertexShader: /* glsl */`attribute vec3 aCol; attribute float aSize; attribute float aAlpha; uniform float uPR, uH;
+        varying vec3 vC; varying float vA;
+        void main(){ vC = aCol; vA = aAlpha; vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = aAlpha > 0.0 ? aSize * 0.14 * uH * uPR / -mv.z : 0.0; gl_Position = projectionMatrix * mv; }`,
+      fragmentShader: /* glsl */`varying vec3 vC; varying float vA;
+        void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.0, d); a = a * a + smoothstep(0.2, 0.0, d);
+          gl_FragColor = vec4(vC * a * vA, 1.0); }`,
+    });
+    this.points = new THREE.Points(g, this.mat);
+    this.points.frustumCulled = false;
+    scene.add(this.points);
+    this.active = false;
+  }
+
+  clear() { this.pts.length = 0; for (let i = 0; i < this.max; i++) this.alpha[i] = 0; this.points.geometry.attributes.aAlpha.needsUpdate = true; }
+
+  push(head, color, boosting) {
+    if (!boosting) { if (this.pts.length) this.pts.shift(); return; }
+    this.pts.unshift({ x: head.x, y: head.y + 0.15, z: head.z, t: 0, r: color.r, g: color.g, b: color.b });
+    while (this.pts.length > this.max) this.pts.pop();
+  }
+
+  update(dt) {
+    const n = this.pts.length;
+    for (let i = 0; i < this.max; i++) {
+      if (i < n) {
+        const p = this.pts[i];
+        p.t += dt;
+        const k = 1 - i / this.max;
+        this.pos[i * 3] = p.x; this.pos[i * 3 + 1] = p.y; this.pos[i * 3 + 2] = p.z;
+        this.col[i * 3] = p.r * (2.5 + k * 2); this.col[i * 3 + 1] = p.g * (2.5 + k * 2); this.col[i * 3 + 2] = p.b * (2.5 + k * 2);
+        this.size[i] = 0.9 + k * 1.4;
+        this.alpha[i] = k * k * 0.95;
+      } else this.alpha[i] = 0;
+    }
+    const a = this.points.geometry.attributes;
+    a.position.needsUpdate = true; a.aCol.needsUpdate = true; a.aSize.needsUpdate = true; a.aAlpha.needsUpdate = true;
+  }
+}
+
+// Soft ground chevron pointing toward food (very subtle, default-on).
+export class FoodHint {
+  constructor(scene) {
+    this.enabled = true;
+    try { if (localStorage.getItem('cyberSnake.foodHint') === '0') this.enabled = false; } catch (e) { /* ignore */ }
+    const geo = new THREE.ConeGeometry(0.18, 0.42, 3);
+    geo.rotateX(Math.PI / 2);
+    this.mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending });
+    this.mesh = new THREE.Mesh(geo, this.mat);
+    this.mesh.visible = false;
+    this.mesh.renderOrder = 2;
+    scene.add(this.mesh);
+    this.tmp = new THREE.Vector3();
+  }
+
+  setEnabled(on) {
+    this.enabled = !!on;
+    try { localStorage.setItem('cyberSnake.foodHint', on ? '1' : '0'); } catch (e) { /* ignore */ }
+    if (!on) this.mesh.visible = false;
+  }
+
+  toggle() { this.setEnabled(!this.enabled); return this.enabled; }
+
+  update(head, food, foodColor, distCells) {
+    if (!this.enabled || !food || distCells < 4) { this.mesh.visible = false; return; }
+    const dx = food.x - head.x, dz = food.z - head.z;
+    const len = Math.hypot(dx, dz) || 1;
+    this.mesh.position.set(head.x + (dx / len) * 0.95, 0.08, head.z + (dz / len) * 0.95);
+    this.mesh.rotation.y = Math.atan2(dx, dz);
+    this.mat.color.copy(foodColor);
+    // softer when closer, still very faint far away
+    const soft = Math.min(1, (distCells - 3) / 10) * 0.28;
+    this.mat.opacity = soft;
+    this.mesh.visible = soft > 0.04;
+  }
+}
+
+// Expanding combo glow disc under the head.
+export class ComboAura {
+  constructor(scene) {
+    const geo = new THREE.RingGeometry(0.55, 0.85, 48);
+    this.mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+    this.mesh = new THREE.Mesh(geo, this.mat);
+    this.mesh.rotation.x = -Math.PI / 2;
+    this.mesh.visible = false;
+    scene.add(this.mesh);
+    this.t = 0; this.power = 0;
+  }
+
+  pulse(power = 1) { this.power = Math.max(this.power, power); this.t = 0; this.mesh.visible = true; }
+
+  update(dt, head, color) {
+    if (this.power <= 0) { this.mesh.visible = false; return; }
+    this.t += dt;
+    const k = Math.min(1, this.t / 0.55);
+    const s = 1 + k * (0.8 + this.power * 0.35);
+    this.mesh.position.set(head.x, 0.04, head.z);
+    this.mesh.scale.setScalar(s);
+    this.mat.color.copy(color);
+    this.mat.opacity = (1 - k) * (0.35 + this.power * 0.15);
+    if (k >= 1) { this.power *= 0.35; this.t = 0; if (this.power < 0.15) { this.power = 0; this.mesh.visible = false; } }
+  }
+}

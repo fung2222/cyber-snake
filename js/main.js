@@ -10,7 +10,7 @@ import { World, U } from './world.js';
 import * as rig from './camrig.js';
 import { fitFor, orbitPose, topPose, followPose, shakeOffset } from './camrig.js';
 import { SnakeView, FoodView, ObstacleView, cellToWorld } from './entities.js';
-import { Particles, Shockwaves, CyberShader } from './effects.js';
+import { Particles, Shockwaves, CyberShader, suckIn, turnTrail, BoostTrail, FoodHint, ComboAura } from './effects.js';
 import { SnakeGame } from './game.js';
 import { aiChoose } from './ai.js';
 import { themeFor, targetFor, AUTHORED_LEVELS, MILESTONE_EVERY, milestoneBonus } from './levels.js';
@@ -58,8 +58,12 @@ const foodView = new FoodView(scene);
 const obstacleView = new ObstacleView(scene);
 const particles = new Particles(scene);
 const waves = new Shockwaves(scene);
+const boostTrail = new BoostTrail(scene);
+const foodHint = new FoodHint(scene);
+const comboAura = new ComboAura(scene);
 const audio = new AudioEngine();
 const ui = new UI();
+ui.setHint(foodHint.enabled);
 
 // ---------------- Post processing ----------------
 const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: pixelRatio < 1.5 ? 4 : 0 });
@@ -107,6 +111,7 @@ function updateTheme(dt) {
   const k = 1 - Math.exp(-dt * 2.2);
   for (const u of Object.values(themeKeys)) if (themeTarget[u]) U[u].value.lerp(themeTarget[u], k);
   foodColor.lerp(foodTarget, k);
+  if (game.foodSpecial) foodColor.lerp(U.uC3.value, 0.35);
   foodView.setColor(foodColor);
 }
 
@@ -122,6 +127,7 @@ let camMode = params.get('cam') === 'top' ? 'top' : 'follow';
 const fx = { trauma: 0, aberr: 0, glitch: 0, flash: 0, fovKick: 0, slowmo: 0, danger: 0 };
 let dyingT = 0;
 const tmpV = new THREE.Vector3();
+const hintHead = new THREE.Vector3(), hintFood = new THREE.Vector3();
 
 const game = new SnakeGame({
   beforeStep(g) {
@@ -130,32 +136,55 @@ const game = new SnakeGame({
       if (m) g.queueDir(m);
     }
   },
-  onTurn() { if (!autopilot) audio.turn(); },
-  onSpawnFood(f) {
+  onTurn(nd, prev) {
+    if (!autopilot) audio.turn();
+    if (state === 'playing' || state === 'attract') {
+      const hp = snakeView.headPos;
+      turnTrail(particles, hp, prev || game.dir, U.uC1.value, game.boosting ? 28 : 16);
+    }
+  },
+  onSpawnFood(f, special) {
     if (!f) { foodView.hide(); return; }
     cellToWorld(f.x, f.z, tmpV);
-    foodView.show(tmpV);
+    foodView.show(tmpV, !!special);
     world.floorUniforms.uFood.value.set(tmpV.x, tmpV.z);
-    particles.burst(tmpV.clone().setY(0.6), foodColor, 24, { speed: 3, up: 2, life: 0.6, size: 0.7, grav: -2 });
+    particles.burst(tmpV.clone().setY(0.6), foodColor, special ? 36 : 24, { speed: 3, up: 2, life: 0.6, size: special ? 0.95 : 0.7, grav: -2 });
     if (state === 'playing') audio.spawn();
   },
-  onEat({ at, pts, mult, combo }) {
+  onBoostStart() {
+    if (state === 'playing') { audio.boostStart(); fx.fovKick = Math.max(fx.fovKick, 0.55); fx.aberr = Math.max(fx.aberr, 0.35); }
+  },
+  onBoostEnd() {
+    if (state === 'playing' || state === 'dying') audio.boostEnd();
+    boostTrail.clear();
+  },
+  onEat({ at, pts, mult, combo, special, tier }) {
     const p = cellToWorld(at.x, at.z, new THREE.Vector3()).setY(0.6);
-    particles.burst(p, foodColor, 90, { speed: 7, up: 4, life: 1.0, size: 1.1, color2: U.uC1.value, grav: -10 });
-    particles.ring(p, U.uC2.value, 40, 7, 0.15);
-    waves.spawn(p, foodColor, { r0: 0.3, r1: 2.6, h: 0.9, dur: 0.55, a: 2.2 });
+    suckIn(particles, p, foodColor, special ? 48 : 32);
+    const burstN = special ? 130 : (combo >= 3 ? 110 : 90);
+    particles.burst(p, foodColor, burstN, { speed: special ? 9 : 7, up: special ? 5.5 : 4, life: 1.05, size: special ? 1.35 : 1.1, color2: U.uC1.value, grav: -10 });
+    particles.ring(p, special ? U.uC3.value : U.uC2.value, special ? 64 : 40, special ? 9 : 7, 0.15);
+    waves.spawn(p, foodColor, { r0: 0.3, r1: special ? 3.4 : 2.6, h: special ? 1.3 : 0.9, dur: 0.55, a: special ? 2.8 : 2.2 });
+    if (combo >= 2) {
+      comboAura.pulse(0.7 + Math.min(combo, 6) * 0.18);
+      waves.spawn(p, U.uC3.value, { r0: 0.5, r1: 4 + combo * 0.4, h: 0.5, dur: 0.45, a: 1.6 });
+    }
     const fu = world.floorUniforms;
     fu.uPulse2.value.copy(fu.uPulse.value);
-    fu.uPulse.value.set(p.x, p.z, U.uTime.value, 1.0);
+    fu.uPulse.value.set(p.x, p.z, U.uTime.value, special ? 1.5 : 1.0);
     snakeView.flash();
-    fx.aberr = Math.max(fx.aberr, 0.4);
-    fx.trauma = Math.min(1, fx.trauma + 0.12);
+    fx.aberr = Math.max(fx.aberr, special ? 0.7 : 0.4);
+    fx.trauma = Math.min(1, fx.trauma + (special ? 0.2 : 0.12));
     foodView.hide();
     world.floorUniforms.uFood.value.set(999, 999);
     if (state === 'playing') {
-      audio.eat(combo);
+      audio.eat(combo, tier || 'normal');
+      if (combo >= 2) audio.combo(combo);
       const s = toScreen(p);
-      ui.popup(s.x, s.y - 20, '+' + pts, mult > 1 ? 'x' + mult.toFixed(1) : '');
+      const kind = special ? 'special' : (combo >= 3 ? 'combo-eat' : '');
+      ui.popup(s.x, s.y - 20, '+' + pts, mult > 1 ? 'x' + mult.toFixed(1) : '', kind);
+      if (combo >= 2) ui.comboToast(s.x, s.y - 56, combo);
+      if (special) ui.flash('rgba(255,243,92,0.28)', 280);
     }
   },
   onLevelUp(level, old) {
@@ -225,6 +254,7 @@ function startGame() {
 
 function pauseToggle() {
   if (state === 'playing') {
+    game.setBoost(false);
     state = 'paused'; ui.show('pause'); audio.stopMusic(0.3); audio.click();
   } else if (state === 'paused') {
     state = 'playing'; ui.show(null); audio.startMusic(); audio.click();
@@ -260,6 +290,11 @@ setupInput({
     if (state === 'playing' && !autopilot) game.queueDir(d);
     else if (state === 'attract' && (d === 'up')) { /* ignore */ }
   },
+  boostingAllowed() { return state === 'playing' && !autopilot; },
+  boost(on) {
+    if (state === 'playing' && !autopilot) game.setBoost(!!on);
+    else if (!on) game.setBoost(false);
+  },
   primary() {
     if (state === 'attract') startGame();
     else if (state === 'paused') pauseToggle();
@@ -269,7 +304,28 @@ setupInput({
   mute() { audio.init(); ui.setMuted(audio.toggleMute()); },
   camera() { camMode = camMode === 'follow' ? 'top' : 'follow'; audio.click(); },
   fps() { ui.el.fps.classList.toggle('hidden'); },
+  hint() { ui.setHint(foodHint.toggle()); audio.click(); },
 });
+// on-screen boost (mobile + desktop hold)
+{ const bb = document.getElementById('btn-boost');
+  if (bb) {
+    const set = (on) => { if (state === 'playing' && !autopilot) game.setBoost(on); else if (!on) game.setBoost(false); };
+    bb.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      try { if (e.pointerId != null) bb.setPointerCapture(e.pointerId); } catch (_) { /* synthetic / touch quirks */ }
+      set(true);
+    });
+    bb.addEventListener('pointerup', (e) => { e.preventDefault(); set(false); });
+    bb.addEventListener('pointercancel', () => set(false));
+    bb.addEventListener('lostpointercapture', () => set(false));
+    bb.addEventListener('contextmenu', (e) => e.preventDefault());
+    // touch fallback (some WebViews skip pointer*)
+    bb.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); set(true); }, { passive: false });
+    bb.addEventListener('touchend', (e) => { e.preventDefault(); set(false); }, { passive: false });
+    bb.addEventListener('touchcancel', () => set(false));
+  }
+}
+document.getElementById('btn-hint')?.addEventListener('click', (e) => { e.stopPropagation(); ui.setHint(foodHint.toggle()); audio.click(); e.currentTarget.blur(); });
 const on = (id, fn) => document.getElementById(id).addEventListener('click', (e) => { e.stopPropagation(); fn(); e.currentTarget.blur(); });
 on('btn-start', startGame);
 on('btn-restart', startGame);
@@ -306,6 +362,8 @@ function resize() {
   cyberPass.uniforms.uRes.value.set(w * pixelRatio, h * pixelRatio);
   particles.mat.uniforms.uH.value = h;
   particles.mat.uniforms.uPR.value = pixelRatio;
+  boostTrail.mat.uniforms.uH.value = h;
+  boostTrail.mat.uniforms.uPR.value = pixelRatio;
 }
 window.addEventListener('resize', resize);
 resize();
@@ -403,11 +461,28 @@ function frame(now) {
 
   updateTheme(rdt);
   const pts = snakePoints();
-  snakeView.update(time, rdt, pts, game.dir, !game.dead);
+  snakeView.update(time, rdt, pts, game.dir, !game.dead, game.boosting);
   foodView.update(time, rdt);
   obstacleView.update(rdt);
   particles.update(dt);
   waves.update(dt);
+  boostTrail.push(snakeView.headPos, U.uC1.value, game.boosting && (state === 'playing' || state === 'attract'));
+  if (game.boosting) {
+    // soft sparkle drip while boosting
+    if (Math.random() < 0.55) {
+      const v = new THREE.Vector3((-game.dir.x + (Math.random() - 0.5)) * 3, 1 + Math.random() * 2, (-game.dir.z + (Math.random() - 0.5)) * 3);
+      particles.emit(snakeView.headPos.clone().setY(0.4), v, U.uC2.value, { life: 0.35, size: 0.7, grav: -4, drag: 1.8, bright: 3.5 });
+    }
+  }
+  boostTrail.update(rdt);
+  comboAura.update(rdt, snakeView.headPos, U.uC3.value);
+  {
+    let dist = 99;
+    if (game.food) dist = Math.abs(game.food.x - game.snake[0].x) + Math.abs(game.food.z - game.snake[0].z);
+    cellToWorld(game.snake[0].x, game.snake[0].z, hintHead);
+    const fw = game.food ? cellToWorld(game.food.x, game.food.z, hintFood) : null;
+    foodHint.update(hintHead, fw, foodColor, (state === 'playing' || state === 'paused') ? dist : 0);
+  }
   ui.tickBanner(rdt);
   world.update(time, rdt, camera);
   const fu = world.floorUniforms;
@@ -474,4 +549,6 @@ window.__snake = {
   // occlusion test hooks (tests/occlusion.py)
   THREE, world, camera, rig, cellToWorld, snakeView,
   get camMode() { return camMode; }, setCamMode(m) { camMode = m; },
+  foodHint, boostTrail, comboAura,
+  get boosting() { return game.boosting; },
 };

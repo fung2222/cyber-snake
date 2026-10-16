@@ -470,3 +470,49 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
   visibility: hidden !important;
   opacity: 0 !important;
 }
+
+
+/* ---- polish: boost + hint + combo toast ---- */
+.boost-btn {
+  position: absolute; left: max(16px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom));
+  pointer-events: auto; z-index: 6;
+  min-width: 88px; height: 56px; padding: 8px 14px 10px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: rgba(10,4,30,.62); border: 1px solid color-mix(in srgb, var(--c3) 65%, transparent);
+  color: var(--c3); font-family: var(--font); font-weight: 900; letter-spacing: 3px; font-size: 12px;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--c3) 35%, transparent);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  cursor: pointer; touch-action: none; user-select: none;
+  transition: transform .1s, box-shadow .2s, filter .15s;
+}
+.boost-btn:hover, .boost-btn:focus-visible { filter: brightness(1.15); outline: none; }
+.boost-btn.active { background: color-mix(in srgb, var(--c3) 28%, rgba(10,4,30,.7)); box-shadow: 0 0 22px var(--c3), inset 0 0 16px color-mix(in srgb, var(--c3) 40%, transparent); transform: scale(1.04); }
+.boost-btn.cooling { opacity: .72; border-color: color-mix(in srgb, var(--c1) 50%, transparent); color: var(--c1); }
+.boost-btn.ready:not(.active) { animation: boostReady 1.8s ease-in-out infinite; }
+@keyframes boostReady { 50% { box-shadow: 0 0 20px color-mix(in srgb, var(--c3) 55%, transparent); } }
+.boost-label { font-family: var(--font-zh); pointer-events: none; }
+.boost-meter { display: block; width: 64px; height: 4px; background: rgba(255,255,255,.12); overflow: hidden; pointer-events: none; }
+#boost-fill { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--c1), var(--c3)); box-shadow: 0 0 8px var(--c3); transition: width .08s linear; }
+.boost-btn.cooling #boost-fill { background: linear-gradient(90deg, var(--c2), var(--c1)); }
+
+#btn-hint.off svg { opacity: .35; filter: none; }
+#btn-hint svg { fill: none; stroke: var(--c1); }
+
+.popup.special { color: var(--c3); font-size: 26px; text-shadow: 0 0 8px var(--c3), 0 0 18px var(--c3), 0 0 28px var(--c2); }
+.popup.combo-eat { color: #fff; text-shadow: 0 0 8px var(--c2), 0 0 18px var(--c2), 0 0 30px var(--c1); }
+.popup.combo-toast {
+  font-size: 18px; letter-spacing: 4px; color: var(--c3);
+  text-shadow: 0 0 10px var(--c3), 0 0 22px var(--c2);
+  animation: comboToast 1.05s ease-out forwards;
+}
+@keyframes comboToast {
+  0% { opacity: 0; transform: translate(-50%, -20%) scale(.7); }
+  18% { opacity: 1; transform: translate(-50%, -70%) scale(1.25); }
+  100% { opacity: 0; transform: translate(-50%, -200%) scale(1); }
+}
+
+@media (max-width: 760px) {
+  .boost-btn { left: max(10px, env(safe-area-inset-left)); bottom: max(14px, env(safe-area-inset-bottom)); min-width: 78px; height: 52px; font-size: 11px; }
+  .hud-buttons { bottom: max(14px, env(safe-area-inset-bottom)); }
+  .fps { left: max(10px, env(safe-area-inset-left)); bottom: max(78px, calc(env(safe-area-inset-bottom) + 70px)); }
+}

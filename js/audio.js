@@ -95,14 +95,69 @@ export class AudioEngine {
   }
 
   // ---------- sound effects ----------
-  eat(combo = 1) {
+  // tier: 'normal' | 'special' | 'combo'
+  eat(combo = 1, tier = 'normal') {
     if (!this.ctx) return;
     const up = Math.min(combo - 1, 6) * 2; // pitch climbs with combo
-    const base = 72 + up;
-    this.osc({ type: 'square', f: mtof(base), t: 0, dur: 0.07, vol: 0.12, lp: 4000, send: 0.25 });
-    this.osc({ type: 'square', f: mtof(base + 7), t: 0.055, dur: 0.09, vol: 0.12, lp: 4500, send: 0.25 });
-    this.osc({ type: 'sine', f: mtof(base + 19), t: 0.05, dur: 0.22, vol: 0.12, send: 0.4 });
-    this.osc({ type: 'triangle', f: 180, f2: 600, t: 0, dur: 0.08, vol: 0.18 });
+    const base = 72 + up + (tier === 'special' ? 4 : 0);
+    // suck-in chirp then chime layers
+    this.osc({ type: 'sine', f: 900 + up * 20, f2: 2200 + up * 40, t: 0, dur: 0.06, vol: 0.08, send: 0.2 });
+    this.osc({ type: 'square', f: mtof(base), t: 0.02, dur: 0.07, vol: 0.12, lp: 4000, send: 0.25 });
+    this.osc({ type: 'square', f: mtof(base + 7), t: 0.07, dur: 0.09, vol: 0.12, lp: 4500, send: 0.25 });
+    this.osc({ type: 'sine', f: mtof(base + 19), t: 0.06, dur: 0.22, vol: 0.12, send: 0.4 });
+    this.osc({ type: 'triangle', f: 180, f2: 600, t: 0.01, dur: 0.08, vol: 0.18 });
+    if (tier === 'special') {
+      this.osc({ type: 'sawtooth', f: mtof(base + 12), t: 0.04, dur: 0.18, vol: 0.07, lp: 3500, send: 0.45 });
+      this.osc({ type: 'sine', f: mtof(base + 24), t: 0.1, dur: 0.28, vol: 0.08, send: 0.5 });
+      this.noiseHit({ t: 0.02, dur: 0.12, vol: 0.06, type: 'bandpass', f: 2400, f2: 6000, q: 2 });
+    }
+    if (tier === 'combo' || combo >= 3) {
+      this.osc({ type: 'square', f: mtof(base + 16), t: 0.08, dur: 0.14, vol: 0.09, lp: 5000, send: 0.4 });
+      this.noiseHit({ t: 0.05, dur: 0.1, vol: 0.05, type: 'highpass', f: 5000 });
+    }
+  }
+
+  combo(n = 2) {
+    if (!this.ctx) return;
+    const root = 60 + Math.min(n, 8) * 2;
+    [0, 4, 7, 12].forEach((iv, i) => this.osc({ type: 'sawtooth', f: mtof(root + iv), t: i * 0.03, dur: 0.2, vol: 0.06, lp: 2800 + i * 400, send: 0.4 }));
+    this.noiseHit({ t: 0, dur: 0.15, vol: 0.05, type: 'bandpass', f: 800, f2: 4000, q: 1.2 });
+  }
+
+  boostStart() {
+    if (!this.ctx) return;
+    this.osc({ type: 'sawtooth', f: 120, f2: 480, dur: 0.18, vol: 0.14, lp: 2200, q: 4, send: 0.2 });
+    this.osc({ type: 'square', f: 880, f2: 1600, t: 0.02, dur: 0.1, vol: 0.06, lp: 5000 });
+    this.noiseHit({ dur: 0.12, vol: 0.08, type: 'highpass', f: 3000, f2: 8000 });
+  }
+
+  boostEnd() {
+    if (!this.ctx) return;
+    this.osc({ type: 'triangle', f: 520, f2: 140, dur: 0.16, vol: 0.07, lp: 1800 });
+    this.noiseHit({ dur: 0.1, vol: 0.04, type: 'lowpass', f: 2000, f2: 400 });
+  }
+
+  startAmbient() {
+    if (!this.ctx || this._amb) return;
+    const ctx = this.ctx;
+    const src = ctx.createBufferSource(); src.buffer = this.noise; src.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 480; bp.Q.value = 0.6;
+    const g = ctx.createGain(); g.gain.value = 0.0001;
+    src.connect(bp); bp.connect(g); g.connect(this.sfx);
+    src.start();
+    const t = ctx.currentTime;
+    g.gain.setTargetAtTime(0.018, t, 0.8);
+    this._amb = { src, g, bp };
+  }
+
+  stopAmbient(fade = 0.5) {
+    if (!this._amb) return;
+    const { src, g } = this._amb;
+    const t = this.ctx.currentTime;
+    g.gain.cancelScheduledValues(t);
+    g.gain.setTargetAtTime(0.0001, t, fade / 3);
+    setTimeout(() => { try { src.stop(); } catch (e) {} }, fade * 1000 + 200);
+    this._amb = null;
   }
 
   turn() {
@@ -175,6 +230,7 @@ export class AudioEngine {
     this.step = 0;
     this.nextTime = t + 0.08;
     this.timer = setInterval(() => this.schedule(), 25);
+    this.startAmbient();
   }
 
   stopMusic(fade = 0.5) {
@@ -184,6 +240,7 @@ export class AudioEngine {
     const t = this.ctx.currentTime;
     this.music.gain.cancelScheduledValues(t);
     this.music.gain.setTargetAtTime(0, t, fade / 3);
+    this.stopAmbient(fade);
   }
 
   setLevel(l) { this.level = l; }

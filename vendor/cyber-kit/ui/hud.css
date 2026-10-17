@@ -216,7 +216,7 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
 
 /* ---- v0.3.9: unified home menu layout ----
    Top-left: house (hub). Top-right: book + gear (privacy/lang folded into sheets).
-   Brand optical ~42%; CTA optical ~57%. Meta: bottom, centre-aligned. */
+   Brand mid-high + CTA mid-low via flex stack (fixed gap, no overlap). Meta: bottom. */
 .menu-home {
   display: flex; /* no !important — must yield to .hidden */
   flex-direction: column;
@@ -314,7 +314,8 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
 }
 .menu-chip b { font-size: 14px; color: #fff; font-family: 'Orbitron', sans-serif; }
 
-/* Full-viewport body; brand + CTA optically split (v0.3.9) */
+/* Full-viewport body; brand + CTA stacked with fixed gap (v0.3.10)
+   Brand mid-high + CTA mid-low via centered flex stack shifted up; never overlap. */
 .menu-body {
   position: absolute;
   inset: 0;
@@ -328,48 +329,67 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
   pointer-events: auto;
 }
 .menu-home.hero .menu-body { text-align: center; }
-/* Wrapper fills viewport; children are absolutely optically placed */
+/* Same stack every game: brand then CTA, fixed gap, optical mid-high / mid-low */
 .menu-mid {
+  --menu-stack-gap: clamp(20px, 3.6vh, 36px);
   position: absolute;
   inset: 0;
   left: 0; top: 0; right: 0; bottom: 0;
-  transform: none;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--menu-stack-gap);
   text-align: center;
   width: auto;
   max-width: none;
   margin: 0;
+  padding:
+    max(56px, calc(env(safe-area-inset-top, 0px) + 40px))
+    16px
+    max(72px, calc(env(safe-area-inset-bottom, 0px) + 56px));
+  box-sizing: border-box;
   z-index: 1;
   pointer-events: none;
+  /* pull whole stack slightly up → brand mid-high, CTA mid-low */
+  transform: translateY(-5.5vh);
 }
-/* Brand: optical centre slightly high (~40–45%) */
 .menu-brand {
-  position: absolute;
-  left: 50%;
-  top: 42%;
-  transform: translate(-50%, -50%);
+  position: relative;
+  left: auto; top: auto;
+  transform: none;
   margin: 0;
+  flex: 0 0 auto;
   max-width: min(560px, calc(100% - 32px));
   width: min(560px, calc(100% - 32px));
   text-align: center;
   pointer-events: auto;
   z-index: 1;
 }
-.menu-brand .kicker { margin-bottom: 8px; }
+/* Cap home title so tall CJK logos don't collide with CTA */
+.menu-home .menu-brand .title {
+  font-size: clamp(44px, 7.5vw, 92px);
+  line-height: 1.06;
+  letter-spacing: 6px;
+}
+html[data-lang="en"] .menu-home .menu-brand .title { letter-spacing: 2px; }
+.menu-brand .kicker { margin-bottom: 6px; }
 .menu-brand .title { margin: 0; }
-.menu-brand .title-en { margin: 6px auto 12px; }
+.menu-brand .title-en { margin: 4px auto 8px; }
 .menu-brand .tagline,
 .menu-brand .subtitle { margin-left: auto; margin-right: auto; }
-.menu-brand .tagline { margin-top: 10px; opacity: .9; }
+.menu-brand .tagline {
+  margin-top: 8px; margin-bottom: 0; opacity: .9;
+  max-width: 420px; line-height: 1.55;
+}
+.menu-brand .subtitle { margin-top: 4px; margin-bottom: 0; }
 .menu-brand .trial-note,
-.menu-brand .trial-tag { margin: 12px auto 0; }
+.menu-brand .trial-tag { margin: 10px auto 0; }
 
-/* Primary CTA: optical centre slightly low (~55–60%) */
 .menu-cta {
-  position: absolute;
-  left: 50%;
-  top: 58%;
-  transform: translate(-50%, -50%);
+  position: relative;
+  left: auto; top: auto;
+  transform: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -377,6 +397,7 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
   width: min(520px, calc(100% - 32px));
   max-width: min(520px, calc(100% - 32px));
   margin: 0;
+  flex: 0 0 auto;
   pointer-events: auto;
   z-index: 2;
 }
@@ -406,19 +427,17 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
   font-size: 15px;
   padding: 9px 16px;
 }
-/* Dense multi-card CTAs: brand higher, CTA grows downward from ~55% */
-.menu-home:has(.menu-cta .game-grid) .menu-brand,
-.menu-home:has(.menu-cta .mode-list) .menu-brand,
-.menu-home:has(.menu-cta .mode-row) .menu-brand {
-  top: 26%;
-}
+/* Dense mode grids: slightly wider CTA, same stack/gap (no absolute reposition) */
 .menu-home:has(.menu-cta .game-grid) .menu-cta,
 .menu-home:has(.menu-cta .mode-list) .menu-cta,
 .menu-home:has(.menu-cta .mode-row) .menu-cta {
-  top: 56%;
-  transform: translate(-50%, -35%);
   width: min(560px, calc(100% - 28px));
   max-width: min(560px, calc(100% - 28px));
+}
+.menu-home:has(.menu-cta .game-grid) .menu-mid,
+.menu-home:has(.menu-cta .mode-list) .menu-mid {
+  --menu-stack-gap: clamp(14px, 2.4vh, 24px);
+  transform: translateY(-3vh);
 }
 
 /* Bottom meta: always centre-aligned */
@@ -481,17 +500,21 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
     max-width: min(62vw, 280px);
   }
   .menu-top .neon-btn { font-size: 11px; padding: 7px 10px; letter-spacing: 2px; }
-  .menu-brand { max-width: min(520px, calc(100% - 28px)); width: min(520px, calc(100% - 28px)); top: 38%; }
-  .menu-cta { max-width: min(520px, calc(100% - 28px)); width: min(520px, calc(100% - 28px)); top: 60%; }
+  .menu-mid {
+    --menu-stack-gap: clamp(16px, 3vh, 28px);
+    transform: translateY(-4vh);
+    padding-left: 14px; padding-right: 14px;
+  }
+  .menu-brand { max-width: min(520px, calc(100% - 28px)); width: min(520px, calc(100% - 28px)); }
+  .menu-cta { max-width: min(520px, calc(100% - 28px)); width: min(520px, calc(100% - 28px)); }
+  .menu-home .menu-brand .title { font-size: clamp(40px, 11vw, 72px); }
   .menu-cta .menu-btns, .menu-cta .menu-btns .neon-btn { width: 100%; min-width: 0; }
   .menu-cta .mode-row .neon-btn,
   .menu-cta .btn-row .neon-btn { min-width: 0; flex: 1; }
-  .menu-home:has(.menu-cta .game-grid) .menu-brand,
-  .menu-home:has(.menu-cta .mode-list) .menu-brand { top: 22%; }
 }
 @media (max-height: 560px) and (min-width: 761px) {
-  .menu-brand { top: 36%; }
-  .menu-cta { top: 62%; }
+  .menu-mid { --menu-stack-gap: 14px; transform: translateY(-3vh); }
+  .menu-home .menu-brand .title { font-size: clamp(36px, 6vw, 64px); }
   .menu-meta .controls, .menu-meta .controls-hint { display: none; }
 }
 

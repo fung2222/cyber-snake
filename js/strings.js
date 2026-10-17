@@ -30,6 +30,6 @@ i18n.add({
   specialEat: ['特殊核心', 'SPECIAL CORE'],
 
   'help.rules': ['<ul><li>喺霓虹網格食數據核心長大；撞牆／自己／障礙＝結束。</li><li>關卡無盡：目標粒數↑、速度↑、障礙佈局轉。</li><li><strong>衝刺</strong>短時間加速（有冷卻）。</li><li>特殊核心同分加成；連擊有光環。</li><li><strong>食物提示</strong>（H）可開關。</li></ul>', '<ul><li>Eat data cores on the neon grid; hit wall / self / obstacle = over.</li><li>Endless levels: more targets, faster ticks, new obstacles.</li><li><strong>Boost</strong> briefly speeds you up (cooldown).</li><li>Special cores score more; combos glow.</li><li><strong>Food hint</strong> (H) toggles.</li></ul>'],
-  'help.controls': ['<ul><li>轉向：滑動／方向鍵／WASD</li><li>衝刺：長按衝刺掣／<kbd>Shift</kbd><kbd>B</kbd><kbd>Space</kbd></li><li>鏡頭 <kbd>C</kbd> · 提示 <kbd>H</kbd> · 暫停 <kbd>P</kbd> · 靜音 <kbd>M</kbd></li></ul>', '<ul><li>Steer: swipe / arrows / WASD</li><li>Boost: hold BOOST / <kbd>Shift</kbd><kbd>B</kbd><kbd>Space</kbd></li><li>Camera <kbd>C</kbd> · Hint <kbd>H</kbd> · Pause <kbd>P</kbd> · Mute <kbd>M</kbd></li></ul>'],
+  'help.controls': ['<ul><li>轉向：滑動／方向鍵／WASD</li><li>衝刺：長按衝刺掣／<kbd>Shift</kbd><kbd>B</kbd><kbd>Space</kbd></li><li>鏡頭 <kbd>C</kbd> · 提示 <kbd>H</kbd> · 暫停 <kbd>P</kbd> · 靜音 <kbd>M</kbd></li><li>手機：滑動轉向 · 撳「衝刺」加速</li></ul>', '<ul><li>Steer: swipe / arrows / WASD</li><li>Boost: hold BOOST / <kbd>Shift</kbd><kbd>B</kbd><kbd>Space</kbd></li><li>Camera <kbd>C</kbd> · Hint <kbd>H</kbd> · Pause <kbd>P</kbd> · Mute <kbd>M</kbd></li><li>Touch: swipe to steer · hold BOOST</li></ul>'],
 });
 export { i18n };

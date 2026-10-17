@@ -1,6 +1,7 @@
 // DOM HUD helper: screens, level banner, score popups, colour flash, toasts, confirm modal (used for rewarded-ad
 // offers), loading / fatal error. Works with ui/hud.css. Missing containers are created automatically.
 // v0.3.9: home icon bar (house / book / gear), optical brand+CTA layout, howto tabs + settings sheet.
+// v0.3.15: home icons ONLY on #screen-start/.menu-home — never append to body; hide leftover corner chrome off-home.
 import { t, getLang, setLang } from '../core/i18n.js';
 
 const $ = (id) => document.getElementById(id);
@@ -97,6 +98,22 @@ export class CyberUI {
       // Inline !important beats any leftover .menu-home { display:flex !important } in cached CSS
       if (on) e.style.removeProperty('display');
       else e.style.setProperty('display', 'none', 'important');
+    }
+    this._syncHomeOnlyChrome(name === 'start');
+  }
+  /**
+   * House/book/gear live inside #screen-start/.menu-home (hidden with that screen).
+   * Also kill leftover floating corner chrome (EN/mute/settings) off-home.
+   */
+  _syncHomeOnlyChrome(onHome) {
+    for (const el of document.querySelectorAll('#corner-btns, .corner-btns')) {
+      el.style.setProperty('display', 'none', 'important');
+      el.classList.add('ck-bar-hide');
+    }
+    // Orphaned icon buttons (mis-mounted on body) must never float during play/mode/pause
+    for (const el of document.querySelectorAll('body > .menu-icon-btn, body > #btn-howto, body > #btn-settings-home')) {
+      if (onHome) el.style.removeProperty('display');
+      else el.style.setProperty('display', 'none', 'important');
     }
   }
   hud(on) { if (this.el.hud) this.el.hud.classList.toggle('hidden', !on); }
@@ -319,7 +336,9 @@ export class CyberUI {
         else right.appendChild(b);
       }
     } else if (!b.parentElement) {
-      document.body.appendChild(b);
+      const home = homeRoot();
+      const slot = home && (home.querySelector('.menu-top-right') || home);
+      (slot || home || document.body).appendChild(b);
     }
     if (!b.dataset.ckHowtoBound) {
       b.dataset.ckHowtoBound = '1';
@@ -533,7 +552,9 @@ export class CyberUI {
       });
       if (!b.parentElement) right.appendChild(b);
     } else if (!b.parentElement) {
-      document.body.appendChild(b);
+      const home = homeRoot();
+      const slot = home && (home.querySelector('.menu-top-right') || home);
+      (slot || home || document.body).appendChild(b);
     }
     if (!b.dataset.ckSettingsBound) {
       b.dataset.ckSettingsBound = '1';

@@ -541,6 +541,18 @@ html[data-lang="en"] .menu-home .menu-brand .title { letter-spacing: 2px; }
 .menu-home.ck-iconbar .menu-top-right > #btn-lang,
 .ck-bar-hide { display: none !important; }
 
+/* v0.3.15: leftover floating top chrome (EN/mute/gear corner, body-mounted icons)
+   must never appear. House/book/gear live inside #screen-start/.menu-home only. */
+#corner-btns,
+.corner-btns,
+body > .menu-icon-btn,
+body > #btn-howto,
+body > #btn-settings-home {
+  display: none !important;
+}
+
+
+
 .menu-icon-btn {
   appearance: none; -webkit-appearance: none;
   width: 44px; height: 44px; min-width: 44px; min-height: 44px;

@@ -214,9 +214,9 @@ html[data-lang="en"] .title, html[data-lang="en"] .title2, html[data-lang="en"] 
 html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
 html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"] .controls { letter-spacing: .5px; }
 
-/* ---- v0.3.7: unified home menu layout (force dismiss start) ----
-   Top-left: Arcade Menu only. Top-right: lang (+ privacy/chips).
-   Brand + primary CTA: true viewport centre (H+V). Meta: bottom, centre-aligned. */
+/* ---- v0.3.9: unified home menu layout ----
+   Top-left: house (hub). Top-right: book + gear (privacy/lang folded into sheets).
+   Brand optical ~42%; CTA optical ~57%. Meta: bottom, centre-aligned. */
 .menu-home {
   display: flex; /* no !important — must yield to .hidden */
   flex-direction: column;
@@ -314,9 +314,8 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
 }
 .menu-chip b { font-size: 14px; color: #fff; font-family: 'Orbitron', sans-serif; }
 
-/* Full-viewport centre stack: brand + CTA */
+/* Full-viewport body; brand + CTA optically split (v0.3.9) */
 .menu-body {
-  /* fill the screen so absolute mid/meta resolve against full viewport */
   position: absolute;
   inset: 0;
   display: block;
@@ -326,34 +325,35 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  pointer-events: auto; /* must receive clicks; none on ancestor breaks Start on some WebKit/touch */
-}
-.menu-home.hero .menu-body {
-  text-align: center;
-}
-/* Brand + primary CTA float on true viewport centre */
-.menu-mid {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: min(560px, calc(100% - 32px));
-  margin: 0;
-  gap: 0;
-  z-index: 1;
   pointer-events: auto;
 }
-.menu-brand {
-  flex: 0 0 auto;
-  margin: 0 auto clamp(14px, 2.8vh, 28px);
-  max-width: 100%;
-  width: 100%;
+.menu-home.hero .menu-body { text-align: center; }
+/* Wrapper fills viewport; children are absolutely optically placed */
+.menu-mid {
+  position: absolute;
+  inset: 0;
+  left: 0; top: 0; right: 0; bottom: 0;
+  transform: none;
+  display: block;
   text-align: center;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+/* Brand: optical centre slightly high (~40–45%) */
+.menu-brand {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  max-width: min(560px, calc(100% - 32px));
+  width: min(560px, calc(100% - 32px));
+  text-align: center;
+  pointer-events: auto;
+  z-index: 1;
 }
 .menu-brand .kicker { margin-bottom: 8px; }
 .menu-brand .title { margin: 0; }
@@ -364,15 +364,21 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
 .menu-brand .trial-note,
 .menu-brand .trial-tag { margin: 12px auto 0; }
 
+/* Primary CTA: optical centre slightly low (~55–60%) */
 .menu-cta {
-  flex: 0 0 auto;
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  width: 100%;
-  max-width: 520px;
-  margin: 0 auto;
+  width: min(520px, calc(100% - 32px));
+  max-width: min(520px, calc(100% - 32px));
+  margin: 0;
+  pointer-events: auto;
+  z-index: 2;
 }
 .menu-cta .neon-btn { margin: 0 auto; }
 .menu-cta .neon-btn + .neon-btn { margin-top: 0 !important; }
@@ -399,6 +405,20 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
   min-width: 0;
   font-size: 15px;
   padding: 9px 16px;
+}
+/* Dense multi-card CTAs: brand higher, CTA grows downward from ~55% */
+.menu-home:has(.menu-cta .game-grid) .menu-brand,
+.menu-home:has(.menu-cta .mode-list) .menu-brand,
+.menu-home:has(.menu-cta .mode-row) .menu-brand {
+  top: 26%;
+}
+.menu-home:has(.menu-cta .game-grid) .menu-cta,
+.menu-home:has(.menu-cta .mode-list) .menu-cta,
+.menu-home:has(.menu-cta .mode-row) .menu-cta {
+  top: 56%;
+  transform: translate(-50%, -35%);
+  width: min(560px, calc(100% - 28px));
+  max-width: min(560px, calc(100% - 28px));
 }
 
 /* Bottom meta: always centre-aligned */
@@ -461,17 +481,18 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
     max-width: min(62vw, 280px);
   }
   .menu-top .neon-btn { font-size: 11px; padding: 7px 10px; letter-spacing: 2px; }
-  .menu-mid { width: min(520px, calc(100% - 28px)); }
-  .menu-brand { margin-bottom: clamp(14px, 2.5vh, 28px); max-width: 100%; }
-  .menu-cta { max-width: 100%; }
+  .menu-brand { max-width: min(520px, calc(100% - 28px)); width: min(520px, calc(100% - 28px)); top: 38%; }
+  .menu-cta { max-width: min(520px, calc(100% - 28px)); width: min(520px, calc(100% - 28px)); top: 60%; }
   .menu-cta .menu-btns, .menu-cta .menu-btns .neon-btn { width: 100%; min-width: 0; }
   .menu-cta .mode-row .neon-btn,
   .menu-cta .btn-row .neon-btn { min-width: 0; flex: 1; }
+  .menu-home:has(.menu-cta .game-grid) .menu-brand,
+  .menu-home:has(.menu-cta .mode-list) .menu-brand { top: 22%; }
 }
 @media (max-height: 560px) and (min-width: 761px) {
-  .menu-brand { margin-bottom: 10px; }
+  .menu-brand { top: 36%; }
+  .menu-cta { top: 62%; }
   .menu-meta .controls, .menu-meta .controls-hint { display: none; }
-  .menu-mid { transform: translate(-50%, -46%); }
 }
 
 /* v0.3.7 start-screen dismiss — last in file so nothing re-flexes a .hidden screen */
@@ -484,47 +505,143 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
   opacity: 0 !important;
 }
 
-/* v0.3.8 — How-to / Controls modal + home menu entry */
-.menu-howto {
-  appearance: none; border: 0; background: transparent; cursor: pointer;
-  font-family: var(--font-zh, "Noto Sans TC", sans-serif);
-  font-size: 11px; letter-spacing: 2px; color: color-mix(in srgb, var(--c1, #00e5ff) 85%, white);
-  text-shadow: 0 0 8px color-mix(in srgb, var(--c1, #00e5ff) 50%, transparent);
-  opacity: .88; padding: 4px 2px; white-space: nowrap;
+/* v0.3.9 — icon top bar + howto tabs + settings sheet */
+.menu-home.ck-iconbar .menu-top-right > .menu-privacy,
+.menu-home.ck-iconbar .menu-top-right > a.menu-privacy,
+.menu-home.ck-iconbar .menu-top-right > .lang-btn,
+.menu-home.ck-iconbar .menu-top-right > #btn-lang,
+.ck-bar-hide { display: none !important; }
+
+.menu-icon-btn {
+  appearance: none; -webkit-appearance: none;
+  width: 44px; height: 44px; padding: 9px; margin: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; pointer-events: auto; flex: 0 0 auto;
+  background: rgba(10,4,30,.55);
+  border: 1px solid color-mix(in srgb, var(--c1) 60%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c1) 35%, transparent);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  transition: transform .1s, box-shadow .2s, filter .2s;
+  color: var(--c1);
 }
-.menu-howto:hover { opacity: 1; text-decoration: underline; }
-.ck-howto .ck-howto-panel {
+.menu-icon-btn:hover, .menu-icon-btn:focus-visible {
+  transform: translateY(-1px); filter: brightness(1.25);
+  box-shadow: 0 0 18px var(--c1); outline: none;
+}
+.menu-icon-btn:active { transform: translateY(1px) scale(.96); }
+.menu-icon-btn .menu-ico,
+.menu-icon-btn svg {
+  width: 100%; height: 100%; display: block;
+  fill: none; stroke: currentColor;
+  filter: drop-shadow(0 0 3px var(--c1));
+}
+.menu-top-left .menu-icon-btn { color: var(--c2); border-color: color-mix(in srgb, var(--c2) 55%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c2) 30%, transparent); }
+.menu-top-left .menu-icon-btn .menu-ico { filter: drop-shadow(0 0 3px var(--c2)); }
+.menu-top-left .menu-icon-btn:hover { box-shadow: 0 0 18px var(--c2); }
+.menu-top .neon-btn.menu-icon-btn,
+.menu-top .menu-icon-btn.neon-btn {
+  min-width: 44px; font-size: 0; padding: 9px; letter-spacing: 0; animation: none !important;
+}
+.menu-howto.menu-icon-btn { text-decoration: none; opacity: 1; font-size: 0; padding: 9px; }
+
+.ck-howto .ck-howto-panel,
+.ck-settings .ck-settings-panel {
   max-width: min(520px, 94vw);
-  max-height: min(78vh, 640px);
+  max-height: min(82vh, 680px);
   display: flex; flex-direction: column; align-items: stretch;
   padding-bottom: 18px;
 }
-.ck-howto-title { font-size: clamp(28px, 6vw, 40px) !important; margin-bottom: 8px !important; }
+.ck-howto-title, .ck-settings-title { font-size: clamp(26px, 5.5vw, 38px) !important; margin-bottom: 6px !important; }
+.ck-tabs {
+  display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;
+  margin: 4px 0 8px;
+}
+.ck-tab {
+  appearance: none; border: 1px solid color-mix(in srgb, var(--c1) 45%, transparent);
+  background: rgba(10,4,30,.45); color: color-mix(in srgb, var(--c1) 80%, white);
+  font-family: var(--font-zh); font-size: 12px; letter-spacing: 2px;
+  padding: 7px 14px; cursor: pointer;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+.ck-tab.on {
+  background: color-mix(in srgb, var(--c1) 22%, transparent);
+  border-color: var(--c1); color: #fff;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--c1) 40%, transparent);
+  text-shadow: 0 0 6px var(--c1);
+}
 .ck-howto-scroll {
   overflow-y: auto; -webkit-overflow-scrolling: touch;
-  max-height: min(52vh, 420px);
-  margin: 6px 0 14px; padding: 4px 6px 8px;
+  max-height: min(48vh, 400px);
+  margin: 4px 0 14px; padding: 4px 6px 8px;
   text-align: left;
 }
+.ck-tab-panel {
+  font-family: var(--font-zh, "Noto Sans TC", sans-serif);
+  font-size: 13px; line-height: 1.65; color: rgba(255,255,255,.88);
+}
+.ck-tab-panel.hidden { display: none !important; }
 .ck-howto-sec { margin-bottom: 14px; }
 .ck-howto-h {
   margin: 0 0 6px; font-family: 'Orbitron', sans-serif; font-size: 11px; letter-spacing: 3px;
   color: var(--c3, #fff35c); text-shadow: 0 0 8px var(--c3, #fff35c);
 }
-.ck-howto-body {
+.ck-howto-body, .ck-tab-panel {
   font-family: var(--font-zh, "Noto Sans TC", sans-serif);
   font-size: 13px; line-height: 1.65; color: rgba(255,255,255,.88);
 }
-.ck-howto-body kbd {
+.ck-howto-body kbd, .ck-tab-panel kbd {
   display: inline-block; min-width: 1.2em; padding: 1px 5px; margin: 0 2px;
   border: 1px solid color-mix(in srgb, var(--c1,#00e5ff) 55%, transparent);
   border-radius: 4px; font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1px;
   color: var(--c1, #00e5ff); background: rgba(0,20,40,.45);
 }
-.ck-howto-body ul { margin: 4px 0 0 1.1em; padding: 0; }
-.ck-howto-body li { margin: 3px 0; }
-.ck-howto-body b { color: #fff; font-weight: 700; }
+.ck-howto-body ul, .ck-tab-panel ul { margin: 4px 0 0 1.1em; padding: 0; }
+.ck-howto-body li, .ck-tab-panel li { margin: 3px 0; }
+.ck-howto-body b, .ck-tab-panel b { color: #fff; font-weight: 700; }
+.ck-howto-link { color: var(--c2); text-shadow: 0 0 6px var(--c2); }
+.ck-howto-empty { opacity: .7; }
+
+.ck-settings-body { margin: 8px 0 14px; text-align: left; }
+.ck-set-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 4px; border-bottom: 1px solid color-mix(in srgb, var(--c1) 18%, transparent);
+}
+.ck-set-label {
+  font-family: var(--font-zh); font-size: 13px; letter-spacing: 2px;
+  color: color-mix(in srgb, var(--c1) 75%, white); flex: 1 1 auto;
+}
+.ck-set-ctrl { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; }
+.ck-seg { display: inline-flex; gap: 4px; }
+.ck-seg button {
+  appearance: none; min-width: 44px; padding: 7px 12px; cursor: pointer;
+  font-family: var(--font-zh); font-size: 12px; letter-spacing: 1px; color: #cde;
+  background: rgba(10,4,30,.5); border: 1px solid color-mix(in srgb, var(--c1) 40%, transparent);
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+.ck-seg button.on {
+  color: #fff; border-color: var(--c1);
+  background: color-mix(in srgb, var(--c1) 22%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c1) 35%, transparent);
+}
+.ck-toggle {
+  appearance: none; min-width: 72px; padding: 7px 12px; cursor: pointer;
+  font-family: var(--font-zh); font-size: 12px; letter-spacing: 1px; color: #cde;
+  background: rgba(10,4,30,.5); border: 1px solid color-mix(in srgb, var(--c2) 45%, transparent);
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+.ck-toggle.on {
+  color: #fff; border-color: var(--c2);
+  background: color-mix(in srgb, var(--c2) 22%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c2) 35%, transparent);
+}
+.ck-slider {
+  width: min(160px, 36vw); accent-color: var(--c1);
+  height: 4px; cursor: pointer;
+}
 @media (max-width: 760px) {
-  .menu-howto { font-size: 10px; letter-spacing: 1px; }
-  .ck-howto-body { font-size: 12px; }
+  .menu-icon-btn { width: 40px; height: 40px; padding: 8px; }
+  .ck-tab { font-size: 11px; padding: 6px 10px; letter-spacing: 1px; }
+  .ck-tab-panel, .ck-howto-body { font-size: 12px; }
+  .ck-set-label { font-size: 12px; letter-spacing: 1px; }
 }

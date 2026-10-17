@@ -336,10 +336,11 @@ on('btn-menu', toMenu);
 on('btn-pause', () => { if (state === 'playing' || state === 'paused') pauseToggle(); });
 on('btn-cam', () => { camMode = camMode === 'follow' ? 'top' : 'follow'; });
 on('btn-mute', () => { audio.init(); ui.setMuted(audio.toggleMute()); });
-i18n.bindToggle(document.getElementById('btn-lang')); i18n.bindToggle(document.getElementById('btn-lang2'));
+i18n.bindToggle(document.getElementById('btn-lang')); i18n.bindToggle(document.getElementById('btn-lang2')); // start lang folded into settings gear
 
 const howtoUi = new CyberUI({ screens: [] });
 howtoUi.mountHowto({
+  privacyUrl: './privacy.html',
   onOpen: () => {},
   getContent: () => ({
     kicker: 'CYBER SNAKE',
@@ -350,6 +351,13 @@ howtoUi.mountHowto({
     ],
   }),
 });
+howtoUi.mountSettings({
+  audio,
+  getGlow: () => glow,
+  setGlow: (v) => { glow = v === 'high' ? 'high' : 'low'; try { localStorage.setItem('cyber.glow', glow); } catch (err) {} applyGlow(); },
+  onOpen: () => {},
+});
+
 
 const __hub = readHub();
 if (shouldShowArcadeMenu(__hub)) { const b = document.getElementById('btn-arcade-menu'); if (b) b.classList.remove('hidden'); }

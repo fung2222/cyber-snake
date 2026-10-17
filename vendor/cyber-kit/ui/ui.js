@@ -20,6 +20,25 @@ const ICO = {
 function topRight() {
   return document.querySelector('.menu-home .menu-top-right') || document.querySelector('.menu-top-right');
 }
+/** Keep top-right clean: book + gear (+ optional .menu-chip). Hide privacy/lang/other junk. */
+function tidyTopRight(right) {
+  if (!right) return;
+  for (const el of [...right.children]) {
+    const ok = el.classList.contains('menu-icon-btn')
+      || el.classList.contains('menu-chip')
+      || el.id === 'btn-howto'
+      || el.id === 'btn-settings-home';
+    if (!ok) el.classList.add('ck-bar-hide');
+  }
+  // order: chips (if any) … book … gear
+  const book = right.querySelector('#btn-howto');
+  const gear = right.querySelector('#btn-settings-home, .menu-settings');
+  if (book && gear && book.compareDocumentPosition(gear) & Node.DOCUMENT_POSITION_PRECEDING) {
+    right.insertBefore(book, gear);
+  } else if (book && gear) {
+    right.appendChild(gear);
+  }
+}
 function homeRoot() {
   return document.querySelector('.menu-home') || $('screen-start');
 }
@@ -314,6 +333,7 @@ export class CyberUI {
         this.howto(content);
       });
     }
+    tidyTopRight(right);
     this._howtoOpts = o;
     return b;
   }
@@ -525,6 +545,7 @@ export class CyberUI {
         this.settings(o);
       });
     }
+    tidyTopRight(right);
     return b;
   }
 

@@ -331,28 +331,28 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
 .menu-home.hero .menu-body { text-align: center; }
 /* Same stack every game: brand then CTA, fixed gap, optical mid-high / mid-low */
 .menu-mid {
-  --menu-stack-gap: clamp(20px, 3.6vh, 36px);
+  --menu-stack-gap: clamp(20px, 3.5vh, 32px);
+  --menu-brand-top: max(72px, calc(env(safe-area-inset-top, 0px) + 18vh));
   position: absolute;
   inset: 0;
   left: 0; top: 0; right: 0; bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start; /* brand anchored mid-high — same every game */
   gap: var(--menu-stack-gap);
   text-align: center;
   width: auto;
   max-width: none;
   margin: 0;
   padding:
-    max(56px, calc(env(safe-area-inset-top, 0px) + 40px))
+    var(--menu-brand-top)
     16px
     max(72px, calc(env(safe-area-inset-bottom, 0px) + 56px));
   box-sizing: border-box;
   z-index: 1;
   pointer-events: none;
-  /* pull whole stack slightly up → brand mid-high, CTA mid-low */
-  transform: translateY(-5.5vh);
+  transform: none;
 }
 .menu-brand {
   position: relative;
@@ -437,7 +437,7 @@ html[data-lang="en"] .menu-home .menu-brand .title { letter-spacing: 2px; }
 .menu-home:has(.menu-cta .game-grid) .menu-mid,
 .menu-home:has(.menu-cta .mode-list) .menu-mid {
   --menu-stack-gap: clamp(14px, 2.4vh, 24px);
-  transform: translateY(-3vh);
+  /* keep --menu-brand-top identical so logo height matches other games */
 }
 
 /* Bottom meta: always centre-aligned */
@@ -501,8 +501,8 @@ html[data-lang="en"] .menu-home .menu-brand .title { letter-spacing: 2px; }
   }
   .menu-top .neon-btn { font-size: 11px; padding: 7px 10px; letter-spacing: 2px; }
   .menu-mid {
-    --menu-stack-gap: clamp(16px, 3vh, 28px);
-    transform: translateY(-4vh);
+    --menu-stack-gap: clamp(16px, 2.8vh, 26px);
+    --menu-brand-top: max(64px, calc(env(safe-area-inset-top, 0px) + 14vh));
     padding-left: 14px; padding-right: 14px;
   }
   .menu-brand { max-width: min(520px, calc(100% - 28px)); width: min(520px, calc(100% - 28px)); }
@@ -513,7 +513,7 @@ html[data-lang="en"] .menu-home .menu-brand .title { letter-spacing: 2px; }
   .menu-cta .btn-row .neon-btn { min-width: 0; flex: 1; }
 }
 @media (max-height: 560px) and (min-width: 761px) {
-  .menu-mid { --menu-stack-gap: 14px; transform: translateY(-3vh); }
+  .menu-mid { --menu-stack-gap: 14px; --menu-brand-top: max(48px, 12vh); }
   .menu-home .menu-brand .title { font-size: clamp(36px, 6vw, 64px); }
   .menu-meta .controls, .menu-meta .controls-hint { display: none; }
 }

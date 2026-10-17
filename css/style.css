@@ -301,92 +301,8 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
 }
 .menu-chip b { font-size: 14px; color: #fff; font-family: 'Orbitron', sans-serif; }
 
-/* Full-viewport centre stack: brand + CTA */
-.menu-body {
-  /* fill the screen so absolute mid/meta resolve against full viewport */
-  position: absolute;
-  inset: 0;
-  display: block;
-  text-align: center;
-  width: auto;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  pointer-events: auto; /* must receive clicks; none on ancestor breaks Start on some WebKit/touch */
-}
-.menu-home.hero .menu-body {
-  text-align: center;
-}
-/* Brand + primary CTA float on true viewport centre */
-.menu-mid {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: min(560px, calc(100% - 32px));
-  margin: 0;
-  gap: 0;
-  z-index: 1;
-  pointer-events: auto;
-}
-.menu-brand {
-  flex: 0 0 auto;
-  margin: 0 auto clamp(14px, 2.8vh, 28px);
-  max-width: 100%;
-  width: 100%;
-  text-align: center;
-}
-.menu-brand .kicker { margin-bottom: 8px; }
-.menu-brand .title { margin: 0; }
-.menu-brand .title-en { margin: 6px auto 12px; }
-.menu-brand .tagline,
-.menu-brand .subtitle { margin-left: auto; margin-right: auto; }
-.menu-brand .tagline { margin-top: 10px; opacity: .9; }
-.menu-brand .trial-note,
-.menu-brand .trial-tag { margin: 12px auto 0; }
-
-.menu-cta {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  max-width: 520px;
-  margin: 0 auto;
-}
-.menu-cta .neon-btn { margin: 0 auto; }
-.menu-cta .neon-btn + .neon-btn { margin-top: 0 !important; }
-.menu-cta .mode-row,
-.menu-cta .btn-row,
-.menu-cta .menu-btns,
-.menu-cta .mode-list,
-.menu-cta .game-grid {
-  width: 100%;
-  margin: 0 auto;
-  justify-content: center;
-}
-.menu-cta .menu-btns { align-items: stretch; width: fit-content; max-width: 100%; }
-.menu-cta .menu-sec {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  width: 100%;
-  margin-top: 2px;
-}
-.menu-cta .menu-sec .neon-btn {
-  animation: none !important;
-  min-width: 0;
-  font-size: 15px;
-  padding: 9px 16px;
-}
+/* Home brand/CTA layout: owned by vendor/cyber-kit/ui/hud.css (v0.3.13+) —
+   do NOT re-centre .menu-mid absolutely here or snake logo height drifts from other games. */
 
 /* Bottom meta: always centre-aligned */
 .menu-meta {
@@ -448,17 +364,12 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
     max-width: min(62vw, 280px);
   }
   .menu-top .neon-btn { font-size: 11px; padding: 7px 10px; letter-spacing: 2px; }
-  .menu-mid { width: min(520px, calc(100% - 28px)); }
-  .menu-brand { margin-bottom: clamp(14px, 2.5vh, 28px); max-width: 100%; }
-  .menu-cta { max-width: 100%; }
   .menu-cta .menu-btns, .menu-cta .menu-btns .neon-btn { width: 100%; min-width: 0; }
   .menu-cta .mode-row .neon-btn,
   .menu-cta .btn-row .neon-btn { min-width: 0; flex: 1; }
 }
 @media (max-height: 560px) and (min-width: 761px) {
-  .menu-brand { margin-bottom: 10px; }
   .menu-meta .controls, .menu-meta .controls-hint { display: none; }
-  .menu-mid { transform: translate(-50%, -46%); }
 }
 
 /* v0.3.7 start-screen dismiss — last in file so nothing re-flexes a .hidden screen */

@@ -11,9 +11,10 @@ function ensure(id, cls, html = '') {
 }
 
 const ICO = {
-  home: '<svg class="menu-ico" viewBox="0 0 24 24" aria-hidden="true"><path stroke="currentColor" d="M4 11.5L12 4l8 7.5V20a1 1 0 0 1-1 1h-5.5v-6h-3v6H5a1 1 0 0 1-1-1v-8.5z" fill="none" stroke-width="1.8" stroke-linejoin="round"/></svg>',
-  book: '<svg class="menu-ico" viewBox="0 0 24 24" aria-hidden="true"><path stroke="currentColor" d="M5 4.5h6.5A2.5 2.5 0 0 1 14 7v13.5H7A2 2 0 0 1 5 18.5v-14zM19 4.5h-6.5A2.5 2.5 0 0 0 10 7v13.5h7A2 2 0 0 0 19 18.5v-14z" fill="none" stroke-width="1.7" stroke-linejoin="round"/><path stroke="currentColor" d="M12 7.2v13" fill="none" stroke-width="1.5"/></svg>',
-  gear: '<svg class="menu-ico" viewBox="0 0 24 24" aria-hidden="true"><circle stroke="currentColor" cx="12" cy="12" r="3.1" fill="none" stroke-width="1.7"/><path stroke="currentColor" d="M12 3.4l.7 2.1a6.8 6.8 0 0 1 1.9.8l2.1-.8 1.4 2.4-1.6 1.5c.2.6.3 1.2.3 1.8s-.1 1.2-.3 1.8l1.6 1.5-1.4 2.4-2.1-.8a6.8 6.8 0 0 1-1.9.8l-.7 2.1h-2.8l-.7-2.1a6.8 6.8 0 0 1-1.9-.8l-2.1.8L3.9 15l1.6-1.5A6.8 6.8 0 0 1 5.2 12c0-.6.1-1.2.3-1.8L3.9 8.7 5.3 6.3l2.1.8a6.8 6.8 0 0 1 1.9-.8l.7-2.1H12z" fill="none" stroke-width="1.45" stroke-linejoin="round"/></svg>',
+  /* stroke colours are explicit so icons never depend on host font/CSS color */
+  home: '<svg class="menu-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none"><path d="M4 11.5L12 4l8 7.5V20a1 1 0 0 1-1 1h-5.5v-6h-3v6H5a1 1 0 0 1-1-1v-8.5z" fill="none" stroke="#ff2bd6" stroke-width="1.85" stroke-linejoin="round"/></svg>',
+  book: '<svg class="menu-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none"><path d="M5 4.5h6.5A2.5 2.5 0 0 1 14 7v13.5H7A2 2 0 0 1 5 18.5v-14zM19 4.5h-6.5A2.5 2.5 0 0 0 10 7v13.5h7A2 2 0 0 0 19 18.5v-14z" fill="none" stroke="#00e5ff" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 7.2v13" fill="none" stroke="#00e5ff" stroke-width="1.5"/></svg>',
+  gear: '<svg class="menu-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none"><circle cx="12" cy="12" r="3.1" fill="none" stroke="#00e5ff" stroke-width="1.7"/><path d="M12 3.4l.7 2.1a6.8 6.8 0 0 1 1.9.8l2.1-.8 1.4 2.4-1.6 1.5c.2.6.3 1.2.3 1.8s-.1 1.2-.3 1.8l1.6 1.5-1.4 2.4-2.1-.8a6.8 6.8 0 0 1-1.9.8l-.7 2.1h-2.8l-.7-2.1a6.8 6.8 0 0 1-1.9-.8l-2.1.8L3.9 15l1.6-1.5A6.8 6.8 0 0 1 5.2 12c0-.6.1-1.2.3-1.8L3.9 8.7 5.3 6.3l2.1.8a6.8 6.8 0 0 1 1.9-.8l.7-2.1H12z" fill="none" stroke="#00e5ff" stroke-width="1.45" stroke-linejoin="round"/></svg>',
 };
 
 function topRight() {

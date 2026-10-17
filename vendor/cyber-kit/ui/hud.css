@@ -537,30 +537,39 @@ html[data-lang="en"] .menu-home .menu-brand .title { letter-spacing: 2px; }
 
 .menu-icon-btn {
   appearance: none; -webkit-appearance: none;
-  width: 44px; height: 44px; padding: 9px; margin: 0;
+  width: 44px; height: 44px; min-width: 44px; min-height: 44px;
+  padding: 9px; margin: 0;
   display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer; pointer-events: auto; flex: 0 0 auto;
   background: rgba(10,4,30,.55);
-  border: 1px solid color-mix(in srgb, var(--c1) 60%, transparent);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--c1) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c1, #00e5ff) 60%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c1, #00e5ff) 35%, transparent);
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
   transition: transform .1s, box-shadow .2s, filter .2s;
-  color: var(--c1);
+  color: var(--c1, #00e5ff);
+  font-size: 0; line-height: 0; /* never show fallback text glyphs */
+  -webkit-text-fill-color: transparent;
 }
 .menu-icon-btn:hover, .menu-icon-btn:focus-visible {
   transform: translateY(-1px); filter: brightness(1.25);
-  box-shadow: 0 0 18px var(--c1); outline: none;
+  box-shadow: 0 0 18px var(--c1, #00e5ff); outline: none;
 }
 .menu-icon-btn:active { transform: translateY(1px) scale(.96); }
 .menu-icon-btn .menu-ico,
 .menu-icon-btn svg {
-  width: 100%; height: 100%; display: block;
-  fill: none; stroke: currentColor;
-  filter: drop-shadow(0 0 3px var(--c1));
+  width: 22px; height: 22px; display: block; flex: 0 0 auto;
+  overflow: visible;
+  filter: drop-shadow(0 0 3px var(--c1, #00e5ff));
+}
+/* outline icons only — never fill the whole glyph into a solid square */
+.menu-icon-btn svg,
+.menu-icon-btn svg * {
+  fill: none !important;
 }
 .menu-top-left .menu-icon-btn { color: var(--c2); border-color: color-mix(in srgb, var(--c2) 55%, transparent);
   box-shadow: 0 0 10px color-mix(in srgb, var(--c2) 30%, transparent); }
-.menu-top-left .menu-icon-btn .menu-ico { filter: drop-shadow(0 0 3px var(--c2)); }
+.menu-top-left .menu-icon-btn .menu-ico,
+.menu-top-left .menu-icon-btn svg { filter: drop-shadow(0 0 3px var(--c2, #ff2bd6)); }
 .menu-top-left .menu-icon-btn:hover { box-shadow: 0 0 18px var(--c2); }
 .menu-top .neon-btn.menu-icon-btn,
 .menu-top .menu-icon-btn.neon-btn {

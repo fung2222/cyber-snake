@@ -516,3 +516,48 @@ html[data-lang="en"] .neon-btn span { letter-spacing: 3px; }
   .hud-buttons { bottom: max(14px, env(safe-area-inset-bottom)); }
   .fps { left: max(10px, env(safe-area-inset-left)); bottom: max(78px, calc(env(safe-area-inset-bottom) + 70px)); }
 }
+
+/* v0.3.8 — How-to / Controls modal + home menu entry */
+.menu-howto {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font-family: var(--font-zh, "Noto Sans TC", sans-serif);
+  font-size: 11px; letter-spacing: 2px; color: color-mix(in srgb, var(--c1, #00e5ff) 85%, white);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--c1, #00e5ff) 50%, transparent);
+  opacity: .88; padding: 4px 2px; white-space: nowrap;
+}
+.menu-howto:hover { opacity: 1; text-decoration: underline; }
+.ck-howto .ck-howto-panel {
+  max-width: min(520px, 94vw);
+  max-height: min(78vh, 640px);
+  display: flex; flex-direction: column; align-items: stretch;
+  padding-bottom: 18px;
+}
+.ck-howto-title { font-size: clamp(28px, 6vw, 40px) !important; margin-bottom: 8px !important; }
+.ck-howto-scroll {
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  max-height: min(52vh, 420px);
+  margin: 6px 0 14px; padding: 4px 6px 8px;
+  text-align: left;
+}
+.ck-howto-sec { margin-bottom: 14px; }
+.ck-howto-h {
+  margin: 0 0 6px; font-family: 'Orbitron', sans-serif; font-size: 11px; letter-spacing: 3px;
+  color: var(--c3, #fff35c); text-shadow: 0 0 8px var(--c3, #fff35c);
+}
+.ck-howto-body {
+  font-family: var(--font-zh, "Noto Sans TC", sans-serif);
+  font-size: 13px; line-height: 1.65; color: rgba(255,255,255,.88);
+}
+.ck-howto-body kbd {
+  display: inline-block; min-width: 1.2em; padding: 1px 5px; margin: 0 2px;
+  border: 1px solid color-mix(in srgb, var(--c1,#00e5ff) 55%, transparent);
+  border-radius: 4px; font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 1px;
+  color: var(--c1, #00e5ff); background: rgba(0,20,40,.45);
+}
+.ck-howto-body ul { margin: 4px 0 0 1.1em; padding: 0; }
+.ck-howto-body li { margin: 3px 0; }
+.ck-howto-body b { color: #fff; font-weight: 700; }
+@media (max-width: 760px) {
+  .menu-howto { font-size: 10px; letter-spacing: 1px; }
+  .ck-howto-body { font-size: 12px; }
+}

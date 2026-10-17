@@ -314,8 +314,9 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
 }
 .menu-chip b { font-size: 14px; color: #fff; font-family: 'Orbitron', sans-serif; }
 
-/* Full-viewport body; brand + CTA stacked with fixed gap (v0.3.10)
-   Brand mid-high + CTA mid-low via centered flex stack shifted up; never overlap. */
+/* Full-viewport body (v0.3.14)
+   Order: brand mid-high → short intro → BREATHING mid (3D preview) → Start lower → hi-score bottom.
+   Control / how-to copy never on home (book How-to only). */
 .menu-body {
   position: absolute;
   inset: 0;
@@ -329,18 +330,18 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
   pointer-events: auto;
 }
 .menu-home.hero .menu-body { text-align: center; }
-/* Same stack every game: brand then CTA, fixed gap, optical mid-high / mid-low */
 .menu-mid {
-  --menu-stack-gap: clamp(20px, 3.5vh, 32px);
   --menu-brand-top: max(72px, calc(env(safe-area-inset-top, 0px) + 18vh));
+  /* room under CTA for bottom hi-score line */
+  --menu-cta-bottom: max(88px, calc(env(safe-area-inset-bottom, 0px) + 72px));
   position: absolute;
   inset: 0;
   left: 0; top: 0; right: 0; bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* brand anchored mid-high — same every game */
-  gap: var(--menu-stack-gap);
+  justify-content: flex-start;
+  gap: 0;
   text-align: center;
   width: auto;
   max-width: none;
@@ -348,7 +349,7 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
   padding:
     var(--menu-brand-top)
     16px
-    max(72px, calc(env(safe-area-inset-bottom, 0px) + 56px));
+    var(--menu-cta-bottom);
   box-sizing: border-box;
   z-index: 1;
   pointer-events: none;
@@ -366,7 +367,6 @@ html[data-lang="en"] .label, html[data-lang="en"] .tagline, html[data-lang="en"]
   pointer-events: auto;
   z-index: 1;
 }
-/* Cap home title so tall CJK logos don't collide with CTA */
 .menu-home .menu-brand .title {
   font-size: clamp(44px, 7.5vw, 92px);
   line-height: 1.06;
@@ -378,14 +378,21 @@ html[data-lang="en"] .menu-home .menu-brand .title { letter-spacing: 2px; }
 .menu-brand .title-en { margin: 4px auto 8px; }
 .menu-brand .tagline,
 .menu-brand .subtitle { margin-left: auto; margin-right: auto; }
+/* Short intro only — keep under title, leave mid-screen free */
 .menu-brand .tagline {
   margin-top: 8px; margin-bottom: 0; opacity: .9;
-  max-width: 420px; line-height: 1.55;
+  max-width: 420px; line-height: 1.45;
+  font-size: clamp(13px, 1.7vw, 15px);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 .menu-brand .subtitle { margin-top: 4px; margin-bottom: 0; }
 .menu-brand .trial-note,
 .menu-brand .trial-tag { margin: 10px auto 0; }
 
+/* Start / enter: LOWER screen — margin-top:auto opens mid breathing space for 3D preview */
 .menu-cta {
   position: relative;
   left: auto; top: auto;
@@ -396,7 +403,7 @@ html[data-lang="en"] .menu-home .menu-brand .title { letter-spacing: 2px; }
   gap: 12px;
   width: min(520px, calc(100% - 32px));
   max-width: min(520px, calc(100% - 32px));
-  margin: 0;
+  margin: auto 0 0; /* top auto → sinks to lower band */
   flex: 0 0 auto;
   pointer-events: auto;
   z-index: 2;
@@ -427,64 +434,61 @@ html[data-lang="en"] .menu-home .menu-brand .title { letter-spacing: 2px; }
   font-size: 15px;
   padding: 9px 16px;
 }
-/* Dense mode grids: slightly wider CTA, same stack/gap (no absolute reposition) */
 .menu-home:has(.menu-cta .game-grid) .menu-cta,
 .menu-home:has(.menu-cta .mode-list) .menu-cta,
 .menu-home:has(.menu-cta .mode-row) .menu-cta {
   width: min(560px, calc(100% - 28px));
   max-width: min(560px, calc(100% - 28px));
 }
+/* Dense grids still sit in the lower band; slightly less bottom pad so cards clear hi-line */
 .menu-home:has(.menu-cta .game-grid) .menu-mid,
 .menu-home:has(.menu-cta .mode-list) .menu-mid {
-  --menu-stack-gap: clamp(14px, 2.4vh, 24px);
-  /* keep --menu-brand-top identical so logo height matches other games */
+  --menu-cta-bottom: max(72px, calc(env(safe-area-inset-bottom, 0px) + 56px));
 }
 
-/* Bottom meta: always centre-aligned */
+/* Bottom-most: hi-score / chips only — never control hints */
 .menu-meta {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: max(18px, env(safe-area-inset-bottom));
+  bottom: max(14px, env(safe-area-inset-bottom));
   flex: 0 0 auto;
   margin: 0;
   padding: 0 clamp(16px, 4vw, 32px);
-  max-width: min(520px, 100%);
+  max-width: min(560px, 100%);
   width: max-content;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  pointer-events: none; /* decorative; never steal Start clicks */
+  pointer-events: none;
   z-index: 0;
 }
-.menu-meta,
-.menu-meta .controls,
-.menu-meta .controls-hint,
 .menu-meta .hi-line,
-.menu-meta .touch-hint,
-.menu-meta .keys-hint {
+.menu-meta .menu-chip {
   margin-left: auto;
   margin-right: auto;
   text-align: center !important;
-  max-width: min(520px, 100%);
-}
-.menu-meta .controls,
-.menu-meta .controls-hint {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 0;
-  margin-bottom: 8px;
-  line-height: 1.85;
-}
-.menu-meta .controls > div,
-.menu-meta .controls-hint > div {
+  max-width: min(560px, 100%);
   width: 100%;
-  text-align: center !important;
+  margin-top: 0;
 }
-.menu-meta .hi-line { margin-top: 4px; width: 100%; }
+/* Force-hide every home control / how-to blurb (book How-to owns these) */
+.menu-home .menu-meta .controls,
+.menu-home .menu-meta .controls-hint,
+.menu-home .menu-meta .touch-hint,
+.menu-home .menu-meta .keys-hint,
+.menu-home .menu-meta .howto-blurb,
+.menu-home .menu-body > .controls,
+.menu-home .menu-mid .controls {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
 .menu-meta .link-row { display: none; }
 .menu-home #btn-arcade-menu { margin-top: 0; animation: none; }
 
@@ -501,8 +505,8 @@ html[data-lang="en"] .menu-home .menu-brand .title { letter-spacing: 2px; }
   }
   .menu-top .neon-btn { font-size: 11px; padding: 7px 10px; letter-spacing: 2px; }
   .menu-mid {
-    --menu-stack-gap: clamp(16px, 2.8vh, 26px);
     --menu-brand-top: max(64px, calc(env(safe-area-inset-top, 0px) + 14vh));
+    --menu-cta-bottom: max(80px, calc(env(safe-area-inset-bottom, 0px) + 64px));
     padding-left: 14px; padding-right: 14px;
   }
   .menu-brand { max-width: min(520px, calc(100% - 28px)); width: min(520px, calc(100% - 28px)); }
@@ -513,9 +517,11 @@ html[data-lang="en"] .menu-home .menu-brand .title { letter-spacing: 2px; }
   .menu-cta .btn-row .neon-btn { min-width: 0; flex: 1; }
 }
 @media (max-height: 560px) and (min-width: 761px) {
-  .menu-mid { --menu-stack-gap: 14px; --menu-brand-top: max(48px, 12vh); }
+  .menu-mid {
+    --menu-brand-top: max(48px, 12vh);
+    --menu-cta-bottom: max(64px, calc(env(safe-area-inset-bottom, 0px) + 48px));
+  }
   .menu-home .menu-brand .title { font-size: clamp(36px, 6vw, 64px); }
-  .menu-meta .controls, .menu-meta .controls-hint { display: none; }
 }
 
 /* v0.3.7 start-screen dismiss — last in file so nothing re-flexes a .hidden screen */

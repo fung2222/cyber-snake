@@ -85,6 +85,31 @@ export class World {
     this.buildTraffic();
     this.buildLights();
     this.buildEnv();
+    // Per-level background atmosphere (lerped in update / snapped in setBackground)
+    this.bg = { rain: 0.85, dust: 0.9, fogDensity: 0.011, floor: 0 };
+    this.bgTarget = { rain: 0.85, dust: 0.9, fogDensity: 0.011, floor: 0 };
+    this._rainAmt = { value: 0.85 };
+    this._dustAmt = { value: 0.9 };
+    if (this.rain?.material?.uniforms) this.rain.material.uniforms.uAmt = this._rainAmt;
+    if (this.dustMat) this.dustMat.uniforms.uAmt = this._dustAmt;
+  }
+
+  /** Snap or retarget floor mode + rain/dust/fog for a level theme. Floor mode hard-swaps (level-up flash covers it). */
+  setBackground(th, instant = false) {
+    const floor = th.floor|0;
+    const rain = th.rain ?? 1;
+    const dust = th.dust ?? 1;
+    const fogDensity = th.fogDensity ?? 0.012;
+    this.bgTarget.rain = rain;
+    this.bgTarget.dust = dust;
+    this.bgTarget.fogDensity = fogDensity;
+    this.bgTarget.floor = floor;
+    if (this.floorUniforms?.uBgMode) this.floorUniforms.uBgMode.value = floor;
+    if (instant) {
+      this.bg.rain = rain; this.bg.dust = dust; this.bg.fogDensity = fogDensity; this.bg.floor = floor;
+      this._rainAmt.value = rain; this._dustAmt.value = dust;
+      U.uFogDensity.value = fogDensity;
+    }
   }
 
   // ---------------- Sky ----------------
@@ -135,6 +160,7 @@ export class World {
         uHead: { value: new THREE.Vector2() }, uFood: { value: new THREE.Vector2(999, 999) },
         uHeadColor: { value: new THREE.Color() }, uFoodColor: { value: new THREE.Color() },
         uDanger: { value: 0 },
+        uBgMode: { value: 0 },
       },
       vertexShader: /* glsl */`
         uniform mat4 textureMatrix;
@@ -150,7 +176,7 @@ export class World {
         }`,
       fragmentShader: /* glsl */`
         uniform vec3 color; uniform sampler2D tDiffuse;
-        uniform float uTime, uDanger; uniform vec3 uC1, uC2, uGrid;
+        uniform float uTime, uDanger, uBgMode; uniform vec3 uC1, uC2, uC3, uGrid;
         uniform vec4 uPulse, uPulse2; uniform vec2 uHead, uFood; uniform vec3 uHeadColor, uFoodColor;
         varying vec4 vUvR; varying vec3 vWorld;
         #include <logdepthbuf_pars_fragment>
@@ -162,6 +188,13 @@ export class World {
           float r = age * 16.0; float d = length(p - P.xy);
           return exp(-pow((d - r) * 0.9, 2.0)) * P.w * (1.0 - age / 2.5);
         }
+        // diamond / hex-ish cell edge
+        float hexEdge(vec2 p, float w){
+          vec2 q = abs(fract(p) - 0.5);
+          float d = abs(q.x + q.y - 0.5);
+          float fw = fwidth(p.x) + fwidth(p.y);
+          return 1.0 - smoothstep(0.0, fw * w, d);
+        }
         void main(){
           #include <logdepthbuf_fragment>
           vec2 p = vWorld.xz;
@@ -169,14 +202,16 @@ export class World {
           float m = max(abs(p.x), abs(p.y));
           float inside = 1.0 - step(H, m);
           float dist = length(vWorld - cameraPosition);
-          // puddles / wet asphalt variation
+          float mode = floor(uBgMode + 0.5);
+          // puddles / wet asphalt — stronger in rain mode
           float pn = vnoise(p * 0.18) * 0.65 + vnoise(p * 0.7) * 0.35;
           float puddle = smoothstep(0.42, 0.62, pn);
-          // ripple distortion from rain
-          vec2 rip = (vec2(vnoise(p * 1.7 + uTime * 0.9), vnoise(p * 1.7 - uTime * 0.8)) - 0.5) * 0.004 * (1.0 - inside * 0.8);
+          if (mode == 1.0) puddle = smoothstep(0.28, 0.55, pn);
+          float ripAmt = (mode == 1.0) ? 0.009 : 0.004;
+          vec2 rip = (vec2(vnoise(p * 1.7 + uTime * 0.9), vnoise(p * 1.7 - uTime * 0.8)) - 0.5) * ripAmt * (1.0 - inside * 0.8);
           vec4 uvr = vUvR; uvr.xy += rip * uvr.w;
-          // wet-street look: reflections smeared vertically (in screen space)
           float b = (0.0035 + 0.004 * (1.0 - puddle)) * uvr.w * (1.0 - inside * 0.5);
+          if (mode == 1.0) b *= 1.55;
           vec3 refl = textureProj(tDiffuse, uvr).rgb * 0.2;
           refl += textureProj(tDiffuse, uvr + vec4(0.0,  b, 0.0, 0.0)).rgb * 0.15;
           refl += textureProj(tDiffuse, uvr + vec4(0.0, -b, 0.0, 0.0)).rgb * 0.15;
@@ -187,20 +222,79 @@ export class World {
           refl += textureProj(tDiffuse, uvr + vec4(b * 0.6, 0.0, 0.0, 0.0)).rgb * 0.025;
           refl += textureProj(tDiffuse, uvr + vec4(-b * 0.6, 0.0, 0.0, 0.0)).rgb * 0.025;
 
+          // Dark base keeps snake readable across all themes (art bible near-black plate)
           vec3 base = vec3(0.006, 0.006, 0.013) * (0.7 + vnoise(p * 2.0) * 0.6);
           vec2 cell = floor(p);
           float chk = mod(cell.x + cell.y, 2.0);
           base += inside * vec3(0.006, 0.007, 0.016) * (0.6 + chk * 0.6);
+          if (mode == 4.0) base += inside * vec3(0.012, 0.006, 0.018) * (0.5 + mod(floor(p.x * 0.5) + floor(p.y * 0.5), 2.0) * 0.5);
+          if (mode == 5.0) base += inside * vec3(0.008, 0.012, 0.004) * 0.35;
+          if (mode == 7.0) base += inside * vec3(0.014, 0.006, 0.003) * 0.25;
           float reflK = mix(0.18 + 0.6 * puddle, 0.36, inside);
+          if (mode == 1.0) reflK = mix(0.28 + 0.7 * puddle, 0.48, inside);
+          if (mode == 3.0) reflK *= 0.55;
           vec3 col = base + refl * reflK;
 
-          // arena grid
+          // --- Pattern by background mode (trim accents only; base stays dark) ---
           float gl = gridLine(p, 1.2);
           float gl5 = gridLine(p / 5.0, 1.0);
-          col += uGrid * (gl * 0.11 + gl5 * 0.12) * inside;
-          // cell centre dots
+          float pattern = gl * 0.11 + gl5 * 0.12;
           vec2 cf = abs(fract(p) - 0.5);
-          col += uGrid * smoothstep(0.05, 0.0, length(cf)) * 0.1 * inside;
+          float dots = smoothstep(0.05, 0.0, length(cf)) * 0.1;
+
+          if (mode == 1.0) {
+            // rain-wet: denser grid + ripple glow
+            pattern = gl * 0.16 + gl5 * 0.14 + gridLine(p * 2.0, 1.0) * 0.04;
+            dots *= 1.3;
+          } else if (mode == 2.0) {
+            // scan-magenta haze: horizontal scan bands + sparse major grid
+            float scan = abs(fract(p.y * 2.0 + uTime * 0.35) - 0.5);
+            pattern = gl5 * 0.18 + (1.0 - smoothstep(0.0, 0.08, scan)) * 0.10;
+            dots = 0.0;
+            col += uC2 * (1.0 - smoothstep(0.0, 0.12, scan)) * 0.04 * inside;
+          } else if (mode == 3.0) {
+            // cyan circuit floor: traces between cells
+            float hx = step(0.92, hash12(cell + vec2(1.7, 0.0)));
+            float hz = step(0.92, hash12(cell + vec2(0.0, 2.3)));
+            float trace = hx * (1.0 - smoothstep(0.0, 0.06, abs(fract(p.y) - 0.5)))
+                        + hz * (1.0 - smoothstep(0.0, 0.06, abs(fract(p.x) - 0.5)));
+            float node = smoothstep(0.12, 0.0, length(cf));
+            pattern = gl5 * 0.08 + trace * 0.22 + node * 0.16;
+            dots = node * 0.12;
+            col += uC1 * trace * 0.08 * inside;
+          } else if (mode == 4.0) {
+            // violet night market: large tiles
+            float tl = gridLine(p / 2.0, 1.15);
+            float stall = smoothstep(0.35, 0.55, vnoise(cell * 0.37));
+            pattern = tl * 0.16 + gl * 0.04;
+            dots = 0.0;
+            col += uC2 * stall * 0.03 * inside;
+            col += uC3 * exp(-length(cf * vec2(1.0, 0.6)) * 8.0) * 0.04 * stall * inside;
+          } else if (mode == 5.0) {
+            // acid caution zone: diagonal hazard stripes
+            float stripe = abs(fract((p.x + p.y) * 0.35) - 0.5);
+            float band = 1.0 - smoothstep(0.0, 0.12, stripe);
+            pattern = band * 0.14 + gl5 * 0.06;
+            dots = 0.0;
+            col += uGrid * band * 0.05 * inside;
+            col += uC3 * band * 0.025 * inside;
+          } else if (mode == 6.0) {
+            // volt hex / diamond
+            float hx = hexEdge(p * 0.85, 1.4);
+            float hx2 = hexEdge(p * 0.85 + vec2(0.5, 0.5), 1.2);
+            pattern = hx * 0.14 + hx2 * 0.08 + gl5 * 0.05;
+            dots = smoothstep(0.08, 0.0, length(cf)) * 0.08;
+          } else if (mode == 7.0) {
+            // ember harbor: soft radial rings + sparse grid
+            float ring = abs(fract(length(p) * 0.22 - uTime * 0.08) - 0.5);
+            float rg = 1.0 - smoothstep(0.0, 0.1, ring);
+            pattern = gl5 * 0.10 + rg * 0.12 + gl * 0.03;
+            dots = 0.0;
+            col += uC1 * rg * 0.04 * inside;
+          }
+
+          col += uGrid * pattern * inside;
+          col += uGrid * dots * inside;
           // outer street grid (fades with distance)
           float og = gridLine(p / 4.0, 1.0) * (1.0 - inside) * exp(-max(m - H, 0.0) * 0.05);
           col += uGrid * og * 0.05;
@@ -216,9 +310,10 @@ export class World {
           // pulse rings
           float pl = pulse(uPulse, p) + pulse(uPulse2, p);
           col += mix(uC2, uC1, 0.35) * pl * (0.08 + gl * 1.2 + gl5 * 0.6);
-          // scanning sweep
+          // scanning sweep (stronger in scan mode)
           float sy = mod(uTime * 5.0, 50.0) - 25.0;
-          col += uC1 * exp(-pow((p.y - sy) * 1.5, 2.0)) * inside * (0.015 + gl * 0.25);
+          float sweep = (mode == 2.0) ? 0.04 : 0.015;
+          col += uC1 * exp(-pow((p.y - sy) * 1.5, 2.0)) * inside * (sweep + gl * 0.25);
           // danger tint
           col += vec3(1.0, 0.05, 0.15) * uDanger * (0.03 + gl * 0.35) * inside;
           col = applyFog(col, dist);
@@ -235,7 +330,7 @@ export class World {
     });
     floor.rotation.x = -Math.PI / 2;
     const u = floor.material.uniforms;
-    for (const k of ['uTime', 'uC1', 'uC2', 'uGrid', 'uFogColor', 'uFogDensity']) u[k] = U[k];
+    for (const k of ['uTime', 'uC1', 'uC2', 'uC3', 'uGrid', 'uFogColor', 'uFogDensity']) u[k] = U[k];
     this.floor = floor;
     this.floorUniforms = u;
     this.reflScale = scale;
@@ -625,7 +720,7 @@ export class World {
     geo.setAttribute('aEnd', new THREE.BufferAttribute(end, 1));
     const mat = new THREE.ShaderMaterial({
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-      uniforms: { uTime: U.uTime, uC1: U.uC1, uFogColor: U.uFogColor, uFogDensity: U.uFogDensity, uCenter: { value: new THREE.Vector3() } },
+      uniforms: { uTime: U.uTime, uC1: U.uC1, uFogColor: U.uFogColor, uFogDensity: U.uFogDensity, uCenter: { value: new THREE.Vector3() }, uAmt: { value: 0.85 } },
       vertexShader: /* glsl */`
         attribute vec3 aOff; attribute float aEnd; uniform float uTime; uniform vec3 uCenter;
         varying float vA; varying float vD;
@@ -639,8 +734,8 @@ export class World {
           vD = -mv.z;
           gl_Position = projectionMatrix * mv;
         }`,
-      fragmentShader: /* glsl */`uniform vec3 uC1; varying float vA; varying float vD;
-        void main(){ float a = (1.0 - vA) * 0.26 * smoothstep(1.0, 4.0, vD) * exp(-vD * 0.02);
+      fragmentShader: /* glsl */`uniform vec3 uC1; uniform float uAmt; varying float vA; varying float vD;
+        void main(){ float a = (1.0 - vA) * 0.26 * uAmt * smoothstep(1.0, 4.0, vD) * exp(-vD * 0.02);
           gl_FragColor = vec4(mix(vec3(0.55, 0.72, 1.0), uC1, 0.42) * a, 1.0); }`,
     });
     const rain = new THREE.LineSegments(geo, mat);
@@ -658,7 +753,7 @@ export class World {
     geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
     const mat = new THREE.ShaderMaterial({
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-      uniforms: { uTime: U.uTime, uC1: U.uC1, uC2: U.uC2, uPR: { value: Math.min(window.devicePixelRatio, 2) } },
+      uniforms: { uTime: U.uTime, uC1: U.uC1, uC2: U.uC2, uPR: { value: Math.min(window.devicePixelRatio, 2) }, uAmt: { value: 0.9 } },
       vertexShader: /* glsl */`attribute float aSeed; uniform float uTime, uPR; varying float vS; varying float vT;
         void main(){ vec3 p = position;
           p.x += sin(uTime * 0.3 + aSeed * 20.0) * 1.2; p.z += cos(uTime * 0.25 + aSeed * 17.0) * 1.2;
@@ -666,8 +761,8 @@ export class World {
           vec4 mv = modelViewMatrix * vec4(p, 1.0); vS = aSeed;
           vT = 0.5 + 0.5 * sin(uTime * 2.0 + aSeed * 50.0);
           gl_PointSize = (2.0 + aSeed * 4.0) * uPR * 10.0 / -mv.z; gl_Position = projectionMatrix * mv; }`,
-      fragmentShader: /* glsl */`uniform vec3 uC1, uC2; varying float vS; varying float vT;
-        void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.0, d) * (0.25 + vT * 0.5);
+      fragmentShader: /* glsl */`uniform vec3 uC1, uC2; uniform float uAmt; varying float vS; varying float vT;
+        void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.0, d) * (0.25 + vT * 0.5) * uAmt;
           gl_FragColor = vec4(mix(uC1, uC2, step(0.5, vS)) * a, 1.0); }`,
     });
     const pts = new THREE.Points(geo, mat);
@@ -746,6 +841,14 @@ export class World {
 
   update(t, dt, camera, theme) {
     U.uTime.value = t;
+    // lerp rain / dust / fog density toward level background targets
+    const k = 1 - Math.exp(-(dt || 0.016) * 2.4);
+    this.bg.rain += (this.bgTarget.rain - this.bg.rain) * k;
+    this.bg.dust += (this.bgTarget.dust - this.bg.dust) * k;
+    this.bg.fogDensity += (this.bgTarget.fogDensity - this.bg.fogDensity) * k;
+    this._rainAmt.value = this.bg.rain;
+    this._dustAmt.value = this.bg.dust;
+    U.uFogDensity.value = this.bg.fogDensity;
     this.rain.material.uniforms.uCenter.value.set(camera.position.x * 0.5, 0, camera.position.z * 0.5 - 10);
     // rails & caps follow theme
     this.railMat.color.copy(U.uC1.value).multiplyScalar(2.2);

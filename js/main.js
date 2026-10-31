@@ -107,6 +107,9 @@ function setTheme(level, instant = false) {
   if (instant) foodColor.copy(foodTarget);
   const hex = c => '#' + new THREE.Color(c).getHexString();
   ui.setThemeCss(hex(th.c1), hex(th.c2), hex(th.c3));
+  // Per-level auto background: floor pattern + rain/dust/fog + CSS haze (crossfade via CSS transition / world lerp)
+  world.setBackground(th, instant);
+  ui.setBgCss(th.id, th.scan, th.haze);
 }
 function updateTheme(dt) {
   const k = 1 - Math.exp(-dt * 2.2);
@@ -565,6 +568,7 @@ setTimeout(() => ui.el.loading.classList.add('done'), 250);
 window.__snake = {
   get state() { return state; }, get score() { return game.score; }, get level() { return game.level; },
   get length() { return game.snake.length; }, get fps() { return fps; }, get pixelRatio() { return pixelRatio; },
+  get theme() { return themeFor(game.level); },
   game, start: startGame, pause: pauseToggle,
   setAutopilot(b) { autopilot = b; },
   levelTo(n) { game.level = n - 1; game.levelUp(); },

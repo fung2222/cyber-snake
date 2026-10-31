@@ -14,6 +14,7 @@ export class UI {
       overScore: $('over-score'), overLevel: $('over-level'), overLength: $('over-length'), overHi: $('over-hi'), overReason: $('over-reason'), newrecord: $('newrecord'),
       loading: $('loading'),
       boost: $('btn-boost'), boostFill: $('boost-fill'), hint: $('btn-hint'),
+      scanlines: $('scanlines'), atmo: $('fx-atmo'),
     };
     this.last = {};
     this.lastTarget = -1;
@@ -22,6 +23,18 @@ export class UI {
   setThemeCss(c1, c2, c3) {
     const r = document.documentElement.style;
     r.setProperty('--c1', c1); r.setProperty('--c2', c2); r.setProperty('--c3', c3);
+  }
+
+  /** Per-level CSS atmosphere: scanline strength + haze overlay id (crossfades via CSS). */
+  setBgCss(id, scan = 0.18, haze = 'cyan') {
+    const root = document.documentElement;
+    root.dataset.bg = id || 'grid-alley';
+    root.dataset.haze = haze || 'cyan';
+    if (this.el.scanlines) this.el.scanlines.style.opacity = String(scan);
+    if (this.el.atmo) {
+      this.el.atmo.dataset.bg = id || 'grid-alley';
+      this.el.atmo.dataset.haze = haze || 'cyan';
+    }
   }
 
   show(name) {

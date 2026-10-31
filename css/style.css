@@ -23,9 +23,60 @@ html, body {
 .hidden { display: none !important; }
 
 #fx-flash { position: fixed; inset: 0; pointer-events: none; opacity: 0; mix-blend-mode: screen; z-index: 3; }
+
+/* Per-level atmosphere haze — soft screen overlays; keep opacity low so snake stays readable */
+#fx-atmo {
+  position: fixed; inset: 0; pointer-events: none; z-index: 3;
+  opacity: 0.22;
+  transition: opacity .7s ease, background .7s ease, filter .7s ease;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 110%, color-mix(in srgb, var(--c1) 28%, transparent), transparent 70%),
+    radial-gradient(ellipse 70% 45% at 50% -10%, color-mix(in srgb, var(--c2) 18%, transparent), transparent 65%);
+}
+#fx-atmo[data-haze="cyan"] {
+  opacity: 0.20;
+  background:
+    radial-gradient(ellipse 85% 50% at 50% 120%, rgba(0,229,255,.22), transparent 68%),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(122,215,255,.12), transparent 60%);
+}
+#fx-atmo[data-haze="magenta"] {
+  opacity: 0.32;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 50%, rgba(255,43,214,.16), transparent 70%),
+    repeating-linear-gradient(to bottom, rgba(255,43,214,.07) 0 1px, transparent 1px 4px),
+    radial-gradient(ellipse 50% 35% at 20% 80%, rgba(255,59,92,.12), transparent 55%);
+}
+#fx-atmo[data-haze="violet"] {
+  opacity: 0.24;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 100%, rgba(139,61,255,.22), transparent 65%),
+    radial-gradient(ellipse 55% 40% at 15% 25%, rgba(255,43,214,.14), transparent 60%);
+}
+#fx-atmo[data-haze="acid"] {
+  opacity: 0.22;
+  background:
+    repeating-linear-gradient(-45deg, rgba(124,255,58,.06) 0 8px, transparent 8px 22px),
+    radial-gradient(ellipse 70% 50% at 50% 110%, rgba(124,255,58,.18), transparent 65%),
+    radial-gradient(ellipse 40% 30% at 70% 20%, rgba(255,154,31,.10), transparent 55%);
+}
+#fx-atmo[data-haze="gold"] {
+  opacity: 0.22;
+  background:
+    radial-gradient(ellipse 90% 45% at 50% 105%, rgba(255,180,40,.20), transparent 68%),
+    radial-gradient(ellipse 50% 35% at 30% 15%, rgba(255,59,92,.10), transparent 55%);
+}
+
 #scanlines {
   position: fixed; inset: 0; pointer-events: none; z-index: 4; opacity: .18;
+  transition: opacity .7s ease;
   background: repeating-linear-gradient(to bottom, rgba(255,255,255,.04) 0 1px, transparent 1px 3px);
+}
+html[data-bg="scan-magenta"] #scanlines {
+  background: repeating-linear-gradient(to bottom, rgba(255,43,214,.07) 0 1px, transparent 1px 3px);
+}
+html[data-bg="acid-caution"] #scanlines {
+  background: repeating-linear-gradient(to bottom, rgba(124,255,58,.05) 0 1px, transparent 1px 3px);
 }
 
 /* ---------- HUD ---------- */

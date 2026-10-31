@@ -4,7 +4,7 @@ Live: https://fung2222.github.io/cyber-snake/ · Demo: `?demo=1` · part of CYBE
 CYBER SNAKE predates cyber-kit; it has its own renderer/effects/UI. v1.1 (2026-10-02) made minimal-risk changes only.
 
 ## 1. Design
-True-3D snake on a 20×20 neon grid. Eat cores → grow + score (combo up to ×3). Each level: target cores (5 → 10), faster tick (0.155 s → 0.062 s cap), new obstacle layout, theme shift (6 HK district palettes).
+True-3D snake on a 20×20 neon grid. Eat cores → grow + score (combo up to ×3). Each level: target cores (5 → 10), faster tick (0.155 s → 0.062 s cap), new obstacle layout, **auto background swap** (8 curated cyber themes: floor pattern + rain/dust/fog + CSS haze; Hub Art Bible palette).
 
 ## 2. Endless mode (v1.1)
 - Levels never end; there is no final level. Levels 1–6 use authored layouts; 7+ are procedural symmetric layouts seeded by level (`layoutFor`).
@@ -84,3 +84,12 @@ Enhancement pass on the first CYBER game (keep endless + hub=`?hub=1` Arcade Men
 | H / hint button | Toggle food hint |
 
 Shots: `/workspace/shots/snake-polish/`. Author commits as 嘉豐.
+
+## Per-level backgrounds (2026-10-31)
+
+On every `levelUp` → `setTheme(level)` → `world.setBackground(theme)` + `ui.setBgCss`.
+Themes in `js/levels.js` `THEMES` (8, cycle via `themeFor`): `grid-alley`, `rain-streaks`, `scan-magenta`, `circuit-cyan`, `night-market`, `acid-caution`, `volt-hex`, `ember-harbor`.
+Floor modes 0–7 in `world.js` NeonFloor shader (`uBgMode`); rain/dust/fogDensity lerp; CSS `#fx-atmo` + `#scanlines` crossfade.
+Debug: `window.__snake.levelTo(n)` / `window.__snake.theme`.
+Ad revive / reward revive / numbers combo juice = deferred (not this task). Tip neon-swarm untouched (v0.9.205).
+

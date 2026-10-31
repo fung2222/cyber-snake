@@ -1,13 +1,50 @@
-// Level definitions, colour themes and obstacle layouts.
+// Level definitions, colour themes, background styles and obstacle layouts.
+// Palette locked to Cyber Hub Art Bible: #05010f bg · gunmetal · #00e5ff cyan · #7ad7ff · #ff2bd6 magenta · #ff3b5c warn · #7cff3a acid · gold/orange/violet helpers.
 export const GRID = 20;
 
+// floor: 0 grid-alley · 1 rain-wet · 2 scan-haze · 3 circuit · 4 market-tiles · 5 acid-caution · 6 volt-hex · 7 ember-rings
+// Each level advance cycles theme + swaps floor/atmosphere (see World.setBackground).
 export const THEMES = [
-  { name: '霓虹九龍', en: 'NEON KOWLOON', c1: 0x00f0ff, c2: 0xff2bd6, c3: 0xfff35c, fog: 0x12051f, horizon: 0x5a0a5e, zenith: 0x02010a, food: 0xfff35c, grid: 0x00c8ff },
-  { name: '毒霧旺角', en: 'TOXIC MONG KOK', c1: 0x7dff3a, c2: 0x9b30ff, c3: 0x3affd0, fog: 0x0b1410, horizon: 0x2a1a5c, zenith: 0x010604, food: 0xff3ad0, grid: 0x5aff6a },
-  { name: '銀翼油麻地', en: 'SILVERWING YAU MA TEI', c1: 0xff9a1f, c2: 0x00e5c8, c3: 0xff4f3a, fog: 0x1a0b06, horizon: 0x6a2410, zenith: 0x050202, food: 0x3affff, grid: 0xff8a2a },
-  { name: '電光深水埗', en: 'VOLT SHAM SHUI PO', c1: 0xff3aa8, c2: 0x3a7bff, c3: 0xb8ff3a, fog: 0x0a0620, horizon: 0x24106a, zenith: 0x01010c, food: 0x7affff, grid: 0xff4ab8 },
-  { name: '金龍尖沙咀', en: 'GOLDEN DRAGON TSIM SHA TSUI', c1: 0xffd23a, c2: 0xff2a3a, c3: 0xff8af0, fog: 0x1a0a04, horizon: 0x5a1010, zenith: 0x060101, food: 0x3affd0, grid: 0xffb43a },
-  { name: '冰藍中環', en: 'ICE BLUE CENTRAL', c1: 0xbff4ff, c2: 0x8a3aff, c3: 0x3affff, fog: 0x060a1a, horizon: 0x1a2a6a, zenith: 0x00020a, food: 0xff3a8a, grid: 0x8ad8ff },
+  {
+    id: 'grid-alley', name: '霓虹九龍', en: 'NEON KOWLOON',
+    c1: 0x00e5ff, c2: 0xff2bd6, c3: 0xffb428, fog: 0x05010f, horizon: 0x5a0a5e, zenith: 0x02010a,
+    food: 0xffb428, grid: 0x00e5ff, floor: 0, fogDensity: 0.011, rain: 0.85, dust: 0.9, scan: 0.16, haze: 'cyan',
+  },
+  {
+    id: 'rain-streaks', name: '暴雨旺角', en: 'RAIN MONG KOK',
+    c1: 0x7ad7ff, c2: 0xff2bd6, c3: 0x7cff3a, fog: 0x070412, horizon: 0x2a1a5c, zenith: 0x010408,
+    food: 0xff2bd6, grid: 0x7ad7ff, floor: 1, fogDensity: 0.016, rain: 2.0, dust: 0.35, scan: 0.22, haze: 'cyan',
+  },
+  {
+    id: 'scan-magenta', name: '故障紅磡', en: 'GLITCH HUNG HOM',
+    c1: 0xff2bd6, c2: 0x00e5ff, c3: 0xff3b5c, fog: 0x0a0214, horizon: 0x6a1060, zenith: 0x05010f,
+    food: 0x00e5ff, grid: 0xff2bd6, floor: 2, fogDensity: 0.014, rain: 0.25, dust: 1.2, scan: 0.42, haze: 'magenta',
+  },
+  {
+    id: 'circuit-cyan', name: '電路中環', en: 'CIRCUIT CENTRAL',
+    c1: 0x00e5ff, c2: 0x7ad7ff, c3: 0x8b3dff, fog: 0x040812, horizon: 0x0a3a4a, zenith: 0x01060a,
+    food: 0xffb428, grid: 0x00e5ff, floor: 3, fogDensity: 0.010, rain: 0.15, dust: 1.4, scan: 0.12, haze: 'cyan',
+  },
+  {
+    id: 'night-market', name: '夜市廟街', en: 'NIGHT MARKET',
+    c1: 0x8b3dff, c2: 0xff2bd6, c3: 0xff9a1f, fog: 0x080414, horizon: 0x4a1858, zenith: 0x03010c,
+    food: 0xffe600, grid: 0x9a93bf, floor: 4, fogDensity: 0.013, rain: 0.55, dust: 1.0, scan: 0.18, haze: 'violet',
+  },
+  {
+    id: 'acid-caution', name: '酸霧危區', en: 'ACID CAUTION ZONE',
+    c1: 0x7cff3a, c2: 0xff9a1f, c3: 0xff3b5c, fog: 0x061008, horizon: 0x2a4010, zenith: 0x020604,
+    food: 0xff3b5c, grid: 0x7cff3a, floor: 5, fogDensity: 0.015, rain: 0.4, dust: 0.7, scan: 0.14, haze: 'acid',
+  },
+  {
+    id: 'volt-hex', name: '電光深水埗', en: 'VOLT SHAM SHUI PO',
+    c1: 0xff2bd6, c2: 0x8b3dff, c3: 0x00e5ff, fog: 0x08061a, horizon: 0x24106a, zenith: 0x01010c,
+    food: 0x7ad7ff, grid: 0xff2bd6, floor: 6, fogDensity: 0.012, rain: 0.7, dust: 1.1, scan: 0.20, haze: 'violet',
+  },
+  {
+    id: 'ember-harbor', name: '金港碼頭', en: 'EMBER HARBOR',
+    c1: 0xffb428, c2: 0xff3b5c, c3: 0xff9a1f, fog: 0x10060a, horizon: 0x5a1810, zenith: 0x060201,
+    food: 0x00e5ff, grid: 0xffb428, floor: 7, fogDensity: 0.011, rain: 0.5, dust: 0.8, scan: 0.15, haze: 'gold',
+  },
 ];
 
 export function themeFor(level) { return THEMES[(level - 1) % THEMES.length]; }

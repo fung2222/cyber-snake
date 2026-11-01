@@ -25,20 +25,45 @@ function topRight() {
 function tidyTopRight(right) {
   if (!right) return;
   for (const el of [...right.children]) {
-    const ok = el.classList.contains('menu-icon-btn')
-      || el.classList.contains('menu-chip')
-      || el.id === 'btn-howto'
-      || el.id === 'btn-settings-home';
+    const ok = el.id === 'btn-howto' || el.id === 'btn-settings-home';
     if (!ok) el.classList.add('ck-bar-hide');
   }
-  // order: chips (if any) … book … gear
   const book = right.querySelector('#btn-howto');
-  const gear = right.querySelector('#btn-settings-home, .menu-settings');
-  if (book && gear && book.compareDocumentPosition(gear) & Node.DOCUMENT_POSITION_PRECEDING) {
-    right.insertBefore(book, gear);
-  } else if (book && gear) {
-    right.appendChild(gear);
+  const gear = right.querySelector('#btn-settings-home');
+  if (book) right.appendChild(book);
+  if (gear) right.appendChild(gear);
+}
+/** Same top bar on every game: home left, howto then gear right, always visible. */
+function alignHomeBar() {
+  markIconBar();
+  const root = homeRoot();
+  if (!root) return;
+  let top = root.querySelector(':scope > .menu-top') || root.querySelector('.menu-top');
+  if (!top) {
+    top = document.createElement('div');
+    top.className = 'menu-top';
+    root.prepend(top);
   }
+  let left = top.querySelector('.menu-top-left');
+  let right = top.querySelector('.menu-top-right');
+  if (!left) { left = document.createElement('div'); left.className = 'menu-top-left'; top.prepend(left); }
+  if (!right) { right = document.createElement('div'); right.className = 'menu-top-right'; top.appendChild(right); }
+  const home = $('btn-arcade-menu');
+  const book = $('btn-howto');
+  const gear = $('btn-settings-home');
+  if (home) {
+    home.classList.remove('hidden');
+    home.hidden = false;
+    home.style.removeProperty('display');
+    if (home.parentElement !== left) left.appendChild(home);
+  }
+  if (book && book.parentElement !== right) right.appendChild(book);
+  if (gear) right.appendChild(gear);
+  for (const el of [...left.children, ...right.children]) {
+    if (el === home || el === book || el === gear) continue;
+    el.classList.add('ck-bar-hide');
+  }
+  tidyTopRight(right);
 }
 function homeRoot() {
   return document.querySelector('.menu-home') || $('screen-start');
@@ -221,7 +246,9 @@ export class CyberUI {
     const b = $('btn-arcade-menu');
     if (!b) return null;
     b.classList.add('menu-icon-btn');
-    b.classList.remove('neon-btn', 'ghost');
+    b.classList.remove('neon-btn', 'ghost', 'hidden');
+    b.hidden = false;
+    b.style.removeProperty('display');
     b.innerHTML = ICO.home;
     const paint = () => {
       const lab = t('kit.arcadeMenu');
@@ -233,6 +260,7 @@ export class CyberUI {
       b.dataset.ckHomePaint = '1';
       window.addEventListener('cyber:langchange', paint);
     }
+    alignHomeBar();
     return b;
   }
 
@@ -353,6 +381,7 @@ export class CyberUI {
       });
     }
     tidyTopRight(right);
+    alignHomeBar();
     this._howtoOpts = o;
     return b;
   }
@@ -567,6 +596,7 @@ export class CyberUI {
       });
     }
     tidyTopRight(right);
+    alignHomeBar();
     return b;
   }
 

@@ -119,7 +119,7 @@ addStrings({
   'kit.rewardOffline': ['暫時冇廣告可以睇，遲啲再試下。', 'No ad available right now. Try again later.'],
   'kit.glow': ['光暈：{v}', 'GLOW: {v}'], 'kit.glowLow': ['低', 'LOW'], 'kit.glowHigh': ['高', 'HIGH'], 'kit.glowHint': ['畫面光暈強度（所有遊戲通用）', 'Neon glow strength (all CYBER games)'],
   'kit.endless': ['無盡模式', 'ENDLESS'], 'kit.bestEndless': ['無盡紀錄', 'ENDLESS BEST'], 'kit.language': ['語言', 'LANGUAGE'],
-  'kit.arcadeMenu': ['選單 · 其他遊戲', 'ARCADE MENU'], 'kit.arcadeMenuS': ['ARCADE MENU', '選單 · 其他遊戲'],
+  'kit.arcadeMenu': ['返回主頁', 'HOME'], 'kit.arcadeMenuS': ['HOME', '返回主頁'],
   'kit.howto': ['玩法說明', 'HOW TO PLAY'], 'kit.howtoS': ['RULES · CONTROLS', '規則 · 操作'],
   'kit.howtoClose': ['知道啦', 'GOT IT'], 'kit.howtoCloseS': ['CLOSE', '關閉'],
   'kit.rules': ['規則', 'RULES'], 'kit.controls': ['操作', 'CONTROLS'],

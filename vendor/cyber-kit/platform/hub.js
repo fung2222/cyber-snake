@@ -11,8 +11,8 @@
 import { addStrings } from '../core/i18n.js';
 
 addStrings({
-  'kit.arcadeMenu': ['選單 · 其他遊戲', 'ARCADE MENU'],
-  'kit.arcadeMenuS': ['ARCADE MENU', '選單 · 其他遊戲'],
+  'kit.arcadeMenu': ['返回主頁', 'HOME'],
+  'kit.arcadeMenuS': ['HOME', '返回主頁'],
 });
 
 const TIERS = ['free', 'silver', 'gold'];

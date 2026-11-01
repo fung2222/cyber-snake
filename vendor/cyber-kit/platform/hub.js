@@ -79,7 +79,7 @@ export function returnToHub({ gameId = null, openStore = false } = {}, search = 
     history.back();
     return 'back';
   }
-  location.href = new URL('../cyber-arcade/lab-kqsverjfjd/hub/', location.href).href;
+  location.href = new URL('../cyber-arcade/', location.href).href;
   return 'root';
 }
 

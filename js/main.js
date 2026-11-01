@@ -16,7 +16,7 @@ import { aiChoose } from './ai.js';
 import { themeFor, targetFor, AUTHORED_LEVELS, MILESTONE_EVERY, milestoneBonus } from './levels.js';
 import { i18n, t as tr } from '../vendor/cyber-kit/core/i18n.js';
 import { CyberUI } from '../vendor/cyber-kit/ui/ui.js';
-import { readHub, returnToHub, shouldShowArcadeMenu } from '../vendor/cyber-kit/platform/hub.js';
+import { readHub, returnToHub, shouldShowArcadeMenu } from '../vendor/cyber-kit/platform/hub.js?v=0.3.19';
 import './strings.js';
 import { AudioEngine } from './audio.js';
 import { UI } from './ui.js';

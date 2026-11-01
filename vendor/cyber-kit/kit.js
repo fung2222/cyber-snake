@@ -1,6 +1,6 @@
 // cyber-kit — shared engine pieces for the CYBER arcade games (Three.js r169, no build step, ES modules).
 // Import map in the game's index.html must provide "three" and "three/addons/".
-export const KIT_VERSION = '0.3.18';
+export const KIT_VERSION = '0.3.19';
 export { parseFlags, flags } from './core/flags.js';
 export { createStore } from './core/storage.js';
 export { createStage, GLOW_LEVELS, getGlowPref, setGlowPref } from './core/renderer.js';
@@ -17,4 +17,4 @@ export { i18n, t, tBoth, addStrings, setLang, getLang, isZh, toggleLang, onLangC
 export { endlessCurve, milestoneOf } from './core/endless.js';
 export { Platform, isNative } from './platform/platform.js';
 export { createAds, TEST_UNITS } from './platform/ads.js';
-export { readHub, returnToHub, shouldShowArcadeMenu } from './platform/hub.js?v=0.3.18';
+export { readHub, returnToHub, shouldShowArcadeMenu } from './platform/hub.js?v=0.3.19';

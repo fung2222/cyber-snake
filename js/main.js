@@ -244,7 +244,7 @@ function newGame(level, ai) {
   fx.danger = 0;
 }
 
-function startGame() {
+function beginGame() {
   if (!navigator.userActivation || navigator.userActivation.hasBeenActive) audio.init();
   audio.click();
   newGame(START_LEVEL, DEMO);
@@ -253,6 +253,32 @@ function startGame() {
   ui.el.demo.classList.toggle('hidden', !DEMO);
   audio.stopMusic(0.1);
   setTimeout(() => { if (state === 'playing') audio.startMusic(); }, 120);
+}
+
+const startOverlay = document.getElementById('start-loading');
+let starting = false;
+function showStartLoading(done) {
+  if (!startOverlay) { done(); return; }
+  startOverlay.classList.remove('hidden', 'out');
+  void startOverlay.offsetWidth;
+  startOverlay.classList.add('on');
+  setTimeout(() => {
+    startOverlay.classList.remove('on');
+    startOverlay.classList.add('out');
+    setTimeout(() => {
+      startOverlay.classList.add('hidden');
+      startOverlay.classList.remove('out');
+      done();
+    }, 320);
+  }, 1000);
+}
+function startGame() {
+  if (starting) return;
+  if (state !== 'attract' || DEMO) { beginGame(); return; }
+  if (!navigator.userActivation || navigator.userActivation.hasBeenActive) audio.init();
+  audio.click();
+  starting = true;
+  showStartLoading(() => { starting = false; beginGame(); });
 }
 
 function pauseToggle() {

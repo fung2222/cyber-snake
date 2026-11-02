@@ -24,6 +24,9 @@ Fix: removed the separate loading layer and its dead strings/CSS/references. The
 ### 4. Intro background dim (requested)
 Roy asked for the intro background to slowly darken. `#screen-start::before` now fades a soft `#05010f` layer from 0 to **0.34** over **2.6 s** (ease-out); the title panel is above it, so the title and START button stay readable.
 
+### 5. Start-button loading transition (requested)
+Pressing **START** on the title screen now shows a full-screen transition: two glowing concentric rings (cyan outer, magenta inner) rotating in opposite directions, `Loading...` in the centre, on a dark radial glow. It holds for 1 s, fades out over 0.32 s, then begins play. Retry from game-over skips it; `?demo=1` skips it.
+
 ## UI check
 390px start, play and pause screens: title, HUD panels, bottom progress, BOOST button and the four HUD buttons all fit; no overflow or console errors.
 
@@ -31,4 +34,5 @@ Roy asked for the intro background to slowly darken. `#screen-start::before` now
 - `node tests/reachability.test.mjs` — PASS (level 14)
 - `node --test tests/audio.test.mjs` — 2/2 PASS
 - `python tests/intro.py` — PASS (no `#loading`, one title screen)
+- `python tests/start-loading.py` — PASS (two rings, `Loading...`, clears before play)
 - `python tests/smoke.py` — full run still has an old `#btn-lang` selector; not counted as a pass

@@ -161,6 +161,17 @@ html[data-bg="acid-caution"] #scanlines {
 #screen-start::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: #05010f; opacity: 0; animation: introDim 2.6s ease-out forwards; }
 @keyframes introDim { from { opacity: 0; } to { opacity: .34; } }
 #screen-start .panel { position: relative; z-index: 1; }
+.start-loading { position: fixed; inset: 0; z-index: 18; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, rgba(0,229,255,.10), rgba(5,1,15,.86) 58%, rgba(5,1,15,.96)); opacity: 1; pointer-events: auto; transition: opacity .32s ease; }
+.start-loading.on { opacity: 1; }
+.start-loading.out { opacity: 0; }
+.sl-core { position: relative; width: 178px; height: 178px; display: grid; place-items: center; }
+.sl-ring { position: absolute; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--c1) 78%, transparent); box-shadow: 0 0 18px color-mix(in srgb, var(--c1) 70%, transparent), inset 0 0 18px color-mix(in srgb, var(--c1) 20%, transparent); }
+.sl-ring-a { inset: 0; border-top-color: transparent; border-right-color: transparent; animation: slSpin 1.35s linear infinite; }
+.sl-ring-b { inset: 17px; border-color: color-mix(in srgb, var(--c2) 76%, transparent); border-bottom-color: transparent; border-left-color: transparent; box-shadow: 0 0 16px color-mix(in srgb, var(--c2) 65%, transparent), inset 0 0 14px color-mix(in srgb, var(--c2) 18%, transparent); animation: slSpin 1.9s linear infinite reverse; }
+.sl-text { position: relative; z-index: 1; font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 3px; color: #fff; text-shadow: 0 0 8px var(--c1), 0 0 22px var(--c2); }
+.sl-dots { animation: slDots 1.1s steps(4, end) infinite; }
+@keyframes slSpin { to { transform: rotate(360deg); } }
+@keyframes slDots { 0%, 25% { opacity: .25; } 50%, 75% { opacity: 1; } }
 .panel { position: relative; max-width: 520px; width: 100%; text-align: center; padding: 34px 34px 28px;
   background: linear-gradient(160deg, rgba(14,6,40,.78), rgba(6,2,20,.62)); border: 1px solid color-mix(in srgb, var(--c1) 50%, transparent);
   box-shadow: 0 0 40px color-mix(in srgb, var(--c1) 22%, transparent), inset 0 0 40px color-mix(in srgb, var(--c2) 10%, transparent);

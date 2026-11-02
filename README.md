@@ -34,7 +34,7 @@
 - **無盡模式**：關卡永遠唔會完。第 6 關之後嘅障礙佈局係程式生成（每關固定種子），速度、目標數量同障礙數量都有上限，確保一直玩得落去；城市色調每關轉換。每 10 關係**里程碑**，送額外分數。最遠等級會記錄為無盡紀錄。
 
 ## 語言 Language
-遊戲支援**繁體中文（香港）**同 **English**，喺主畫面或暫停畫面撳「EN／中」切換，會記住你嘅選擇（`localStorage cyber.lang`，所有 CYBER 遊戲共用）。網址加 `?lang=en` / `?lang=zh` 亦可。
+遊戲支援**繁體中文（香港）**同 **English**，喺齒輪設定或暫停畫面切換，會記住你嘅選擇（`localStorage cyber.lang`，所有 CYBER 遊戲共用）。網址加 `?lang=en` / `?lang=zh` 亦可。
 
 ## English
 **CYBER SNAKE** is a true-3D cyberpunk snake game set in neon Kowloon, 2087. Eat data cores to grow, chain them quickly for combo multipliers, and dodge walls, obstacles and your own tail. **Endless mode:** levels never end — after the 6 hand-made arenas, obstacle layouts are generated procedurally per level, while speed, targets and obstacle count are capped so it stays playable; the city background theme auto-swaps every level (8 curated styles), milestones every 10 levels award bonus points, and your best level is saved. Hold Shift/B/Space (or the on-screen BOOST button) for a short speed burst with neon trail; special cores and combo eats get richer VFX/SFX; a soft food-direction hint is toggleable with H. Keyboard or swipe controls. Bilingual (Traditional Chinese / English) with an in-game toggle.

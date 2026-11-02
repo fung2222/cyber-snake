@@ -14,9 +14,9 @@ True-3D snake on a 20×20 neon grid. Eat cores → grow + score (combo up to ×3
 - Test hook: `window.__snake.levelTo(n)`.
 
 ## 3. Bilingual zh-HK / en (v1.1)
-- Uses only cyber-kit v0.3.0 `core/i18n.js`, vendored standalone at `vendor/cyber-kit/core/i18n.js` (no other kit module adopted — lowest risk).
+- Uses only cyber-kit v0.3.19 `core/i18n.js`, vendored standalone at `vendor/cyber-kit/core/i18n.js` (no other kit module adopted — lowest risk).
 - Strings: `js/strings.js` (`{key: [zh-HK, en]}`). HTML uses `data-i18n`, `data-i18n-html`, `data-i18n-attr`. Dynamic text (level banner, death reason, WebGL error) via `t()` (imported as `tr` in `main.js` to avoid clashing with frame-time variables).
-- Toggles: `#btn-lang` (start screen), `#btn-lang2` (pause). Persisted in `localStorage cyber.lang` (shared by all CYBER games); `?lang=en|zh` forces; default from `navigator.language`.
+- Toggles: language lives in the gear settings sheet; pause also has `#btn-lang2`. Persisted in `localStorage cyber.lang` (shared by all CYBER games); `?lang=en|zh` forces; default from `navigator.language`.
 - 3D shop-sign textures in `world.js` remain Chinese/English decoration (in-world art, not UI).
 - Added `<meta name="robots" content="noindex,nofollow">` and a bilingual `privacy.html`.
 

@@ -21,6 +21,9 @@ The boot overlay (`#loading`, "BOOTING NEURAL GRID…") sat on top of the title 
 
 Fix: removed the separate loading layer and its dead strings/CSS/references. The title screen is now the single intro. `fatal()` still shows the `#err` overlay if WebGL fails.
 
+### 4. Intro background dim (requested)
+Roy asked for the intro background to slowly darken. `#screen-start::before` now fades a soft `#05010f` layer from 0 to **0.34** over **2.6 s** (ease-out); the title panel is above it, so the title and START button stay readable.
+
 ## UI check
 390px start, play and pause screens: title, HUD panels, bottom progress, BOOST button and the four HUD buttons all fit; no overflow or console errors.
 

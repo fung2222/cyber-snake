@@ -26,11 +26,16 @@ with sync_playwright() as p:
       startVisible: !document.getElementById('screen-start').classList.contains('hidden'),
       title: document.querySelector('#screen-start .title')?.textContent.trim(),
       docW: document.documentElement.scrollWidth,
+      dim: parseFloat(getComputedStyle(document.getElementById('screen-start'), '::before').opacity),
     })""")
     print(state)
     check(not state['loading'] and not state['bootText'], 'no separate boot overlay')
     check(state['startVisible'] and state['title'] == '賽博蛇', 'one title intro is visible')
     check(state['docW'] <= 390, 'no horizontal overflow')
+    pg.wait_for_timeout(2400)
+    dim = pg.evaluate("() => parseFloat(getComputedStyle(document.getElementById('screen-start'), '::before').opacity)")
+    print('dim after 2.9s:', dim)
+    check(dim >= 0.3, 'background slowly dims to its target')
     check(len(errs) == 0, 'zero console errors')
     c.close(); b.close()
 

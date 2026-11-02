@@ -23,7 +23,7 @@ True-3D snake on a 20×20 neon grid. Eat cores → grow + score (combo up to ×3
 ## 4. Tests
 `python tests/occlusion.py [url] [seeds]` — scenery-occlusion raycasts (see §7). `python tests/occlusion_shots.py URL OUT PREFIX [seed]` — snake parked in the bottom-right corner at 412×915 + 1280×800.
 `python tests/smoke.py [url] [out]` — 412×915 touch + 1280×800: default language, toggle live + persisted, start, endless level 12 + level 20 milestone, pause/resume, forced wall death with translated reason, best level saved, demo, zero console errors.
-`node tests/reachability.test.mjs` — food never spawns inside a sealed obstacle pocket (level 14). `node --test tests/audio.test.mjs` — no ambient BGM bed / noise percussion. `python tests/intro.py [url]` — one title intro, no separate `#loading` overlay.
+`node tests/reachability.test.mjs` — food never spawns inside a sealed obstacle pocket (level 14). `node --test tests/audio.test.mjs` — no ambient BGM bed / noise percussion. `python tests/intro.py [url]` — one title intro, no separate `#loading` overlay; background dims to 0.34 over 2.6 s.
 Last run 2026-11-03: reachability + audio + intro PASS; smoke pending full run.
 
 ## 5. Ads
@@ -96,5 +96,5 @@ Debug: `window.__snake.levelTo(n)` / `window.__snake.theme`.
 Ad revive / reward revive / numbers combo juice = deferred (not this task). Tip neon-swarm untouched (v0.9.205).
 
 ## Deep pass 2026-11-03
-See `docs/DEEP-AUDIT-2026-11-03.md`: food spawn now restricted to reachable cells (level 14 had sealed pockets); BGM no longer has an ambient noise bed or noise percussion; the separate boot overlay was removed so there is one title intro. Tests: `node tests/reachability.test.mjs`, `node --test tests/audio.test.mjs`, `python tests/intro.py`.
+See `docs/DEEP-AUDIT-2026-11-03.md`: food spawn now restricted to reachable cells (level 14 had sealed pockets); BGM no longer has an ambient noise bed or noise percussion; the separate boot overlay was removed so there is one title intro, with the background dimming to 0.34 over 2.6 s. Tests: `node tests/reachability.test.mjs`, `node --test tests/audio.test.mjs`, `python tests/intro.py`.
 

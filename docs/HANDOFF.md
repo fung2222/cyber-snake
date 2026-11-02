@@ -22,7 +22,9 @@ True-3D snake on a 20×20 neon grid. Eat cores → grow + score (combo up to ×3
 
 ## 4. Tests
 `python tests/occlusion.py [url] [seeds]` — scenery-occlusion raycasts (see §7). `python tests/occlusion_shots.py URL OUT PREFIX [seed]` — snake parked in the bottom-right corner at 412×915 + 1280×800.
-`python tests/smoke.py [url] [out]` — 412×915 touch + 1280×800: default language, toggle live + persisted, start, endless level 12 + level 20 milestone, pause/resume, forced wall death with translated reason, best level saved, demo, zero console errors. Last run 2026-10-02: see cyber-arcade ARCADE-HANDOFF.
+`python tests/smoke.py [url] [out]` — 412×915 touch + 1280×800: default language, toggle live + persisted, start, endless level 12 + level 20 milestone, pause/resume, forced wall death with translated reason, best level saved, demo, zero console errors.
+`node tests/reachability.test.mjs` — food never spawns inside a sealed obstacle pocket (level 14). `node --test tests/audio.test.mjs` — no ambient BGM bed / noise percussion.
+Last run 2026-11-03: reachability + audio PASS; smoke pending full run.
 
 ## 5. Ads
 Web build has no ads. If packaged: natural break = game-over screen (Retry/Menu), never mid-level or at a level-up banner.
@@ -74,7 +76,7 @@ Enhancement pass on the first CYBER game (keep endless + hub=`?hub=1` Arcade Men
 - Very soft additive chevron from head toward food when Manhattan distance ≥ 4 (`FoodHint`). Default **on**; toggle with **H** or HUD hint button; persisted `localStorage cyberSnake.foodHint` (`0` = off).
 
 ### SFX
-- Tiered `eat`, `combo`, `boostStart`/`boostEnd`, soft ambient noise bed while music plays (`startAmbient` / `stopAmbient`). Still the local `AudioEngine` (SynthAudio-style primitives, kit loudness chain).
+- Tiered `eat`, `combo`, `boostStart`/`boostEnd`, fully tonal BGM (no ambient noise bed / hats / snare). Still the local `AudioEngine` (SynthAudio-style primitives, kit loudness chain).
 
 ### Controls (additions)
 | Input | Action |
@@ -92,4 +94,7 @@ Themes in `js/levels.js` `THEMES` (8, cycle via `themeFor`): `grid-alley`, `rain
 Floor modes 0–7 in `world.js` NeonFloor shader (`uBgMode`); rain/dust/fogDensity lerp; CSS `#fx-atmo` + `#scanlines` crossfade.
 Debug: `window.__snake.levelTo(n)` / `window.__snake.theme`.
 Ad revive / reward revive / numbers combo juice = deferred (not this task). Tip neon-swarm untouched (v0.9.205).
+
+## Deep pass 2026-11-03
+See `docs/DEEP-AUDIT-2026-11-03.md`: food spawn now restricted to reachable cells (level 14 had sealed pockets); BGM no longer has an ambient noise bed or noise percussion. Tests: `node tests/reachability.test.mjs`, `node --test tests/audio.test.mjs`.
 

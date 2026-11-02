@@ -18,7 +18,7 @@ import { i18n, t as tr } from '../vendor/cyber-kit/core/i18n.js';
 import { CyberUI } from '../vendor/cyber-kit/ui/ui.js';
 import { readHub, returnToHub, shouldShowArcadeMenu } from '../vendor/cyber-kit/platform/hub.js?v=0.3.19';
 import './strings.js';
-import { AudioEngine } from './audio.js';
+import { AudioEngine } from './audio.js?v=0.3.18';
 import { UI } from './ui.js';
 import { setupInput } from './input.js';
 

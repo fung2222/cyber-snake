@@ -137,28 +137,10 @@ export class AudioEngine {
     this.noiseHit({ dur: 0.1, vol: 0.04, type: 'lowpass', f: 2000, f2: 400 });
   }
 
-  startAmbient() {
-    if (!this.ctx || this._amb) return;
-    const ctx = this.ctx;
-    const src = ctx.createBufferSource(); src.buffer = this.noise; src.loop = true;
-    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 480; bp.Q.value = 0.6;
-    const g = ctx.createGain(); g.gain.value = 0.0001;
-    src.connect(bp); bp.connect(g); g.connect(this.sfx);
-    src.start();
-    const t = ctx.currentTime;
-    g.gain.setTargetAtTime(0.018, t, 0.8);
-    this._amb = { src, g, bp };
-  }
-
-  stopAmbient(fade = 0.5) {
-    if (!this._amb) return;
-    const { src, g } = this._amb;
-    const t = this.ctx.currentTime;
-    g.gain.cancelScheduledValues(t);
-    g.gain.setTargetAtTime(0.0001, t, fade / 3);
-    setTimeout(() => { try { src.stop(); } catch (e) {} }, fade * 1000 + 200);
-    this._amb = null;
-  }
+  // Roy's audio rule: no continuous hiss in the BGM. Kept as no-ops so the
+  // existing startMusic/stopMusic callers stay valid.
+  startAmbient() {}
+  stopAmbient() {}
 
   turn() {
     if (!this.ctx) return;
@@ -273,14 +255,11 @@ export class AudioEngine {
       this.osc({ type: 'sine', f: 150, f2: 42, t, dur: 0.28, vol: 0.55, out });
       this.osc({ type: 'triangle', f: 900, f2: 120, t, dur: 0.02, vol: 0.12, out });
     }
-    // snare / clap
+    // snare / clap: keep the tonal body, no noise layer
     if (s === 4 || s === 12) {
-      this.noiseHit({ t, dur: 0.18, vol: 0.2, type: 'bandpass', f: 1900, q: 0.9, out });
       this.osc({ type: 'triangle', f: 230, f2: 160, t, dur: 0.09, vol: 0.12, out });
     }
-    // hats
-    if (s % 2 === 0) this.noiseHit({ t, dur: s % 4 === 2 ? 0.07 : 0.025, vol: s % 4 === 2 ? 0.07 : 0.03, f: 8500, out });
-    else if (lvl >= 3) this.noiseHit({ t, dur: 0.02, vol: 0.02, f: 9500, out });
+    // hats: intentionally none (tonal BGM only, no hiss)
 
     // bass: driving 8ths with octave jumps
     if (s % 2 === 0) {

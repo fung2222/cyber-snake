@@ -69,13 +69,31 @@ export class SnakeGame {
     return true;
   }
 
+  reachableCells() {
+    // Flood fill from the head through non-obstacle cells. The snake body is
+    // allowed here: it moves, and a cell behind the body is still reachable.
+    const head = this.snake[0];
+    const seen = new Set([head.x + ',' + head.z]);
+    const q = [[head.x, head.z]];
+    while (q.length) {
+      const [x, z] = q.shift();
+      for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx, nz = z + dz, k = nx + ',' + nz;
+        if (nx < 0 || nz < 0 || nx >= GRID || nz >= GRID || seen.has(k) || this.obstacleSet.has(k)) continue;
+        seen.add(k); q.push([nx, nz]);
+      }
+    }
+    return seen;
+  }
+
   spawnFood() {
     const free = [];
+    const reachable = this.reachableCells();
     const occ = new Set(this.snake.map(s => s.x + ',' + s.z));
     const head = this.snake[0];
     for (let x = 0; x < GRID; x++) for (let z = 0; z < GRID; z++) {
       const k = x + ',' + z;
-      if (occ.has(k) || this.obstacleSet.has(k)) continue;
+      if (occ.has(k) || this.obstacleSet.has(k) || !reachable.has(k)) continue;
       if (Math.abs(x - head.x) + Math.abs(z - head.z) < 3) continue;
       free.push({ x, z });
     }

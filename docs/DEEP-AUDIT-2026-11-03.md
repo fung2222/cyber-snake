@@ -16,10 +16,16 @@ Fix: `SnakeGame.reachableCells()` flood-fills from the head through non-obstacle
 
 Fix: `startAmbient()` / `stopAmbient()` are no-ops, and the BGM step now has no noise hits — kick, tonal snare body, bass, pad and arp remain. SFX noise stays transient.
 
+### 3. Two opening animations (medium)
+The boot overlay (`#loading`, "BOOTING NEURAL GRID…") sat on top of the title screen and faded out after 250 ms, so the first launch showed a boot animation followed by the title introduction. Roy asked to merge them into one.
+
+Fix: removed the separate loading layer and its dead strings/CSS/references. The title screen is now the single intro. `fatal()` still shows the `#err` overlay if WebGL fails.
+
 ## UI check
 390px start, play and pause screens: title, HUD panels, bottom progress, BOOST button and the four HUD buttons all fit; no overflow or console errors.
 
 ## Verification
 - `node tests/reachability.test.mjs` — PASS (level 14)
 - `node --test tests/audio.test.mjs` — 2/2 PASS
-- `python tests/smoke.py` — see run below
+- `python tests/intro.py` — PASS (no `#loading`, one title screen)
+- `python tests/smoke.py` — full run still has an old `#btn-lang` selector; not counted as a pass

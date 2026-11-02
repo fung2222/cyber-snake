@@ -12,7 +12,6 @@ export class UI {
       startHi: $('start-hi'), banner: $('banner'), bannerMain: $('banner-main'), bannerSub: $('banner-sub'), bannerNote: $('banner-note'),
       popups: $('popups'), flash: $('fx-flash'), mute: $('btn-mute'), fps: $('fps'), demo: $('demo-tag'),
       overScore: $('over-score'), overLevel: $('over-level'), overLength: $('over-length'), overHi: $('over-hi'), overReason: $('over-reason'), newrecord: $('newrecord'),
-      loading: $('loading'),
       boost: $('btn-boost'), boostFill: $('boost-fill'), hint: $('btn-hint'),
       scanlines: $('scanlines'), atmo: $('fx-atmo'),
     };

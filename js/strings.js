@@ -14,7 +14,7 @@ i18n.add({
   bestLevel: ['最遠等級（無盡紀錄）', 'ENDLESS BEST LEVEL'], privacy: ['私隱政策', 'Privacy'],
   paused: ['已暫停', 'PAUSED'], pausedS: ['PAUSED', '已暫停'], resume: ['繼續', 'RESUME'], menu: ['返回主畫面', 'MAIN MENU'], menuShort: ['主畫面', 'MENU'],
   overK: ['SYSTEM FAILURE', '系統崩潰'], over: ['系統崩潰', 'GAME OVER'], overS: ['GAME OVER', '系統崩潰'], newRecord: ['★ 新紀錄 ★', '★ NEW RECORD ★'],
-  retry: ['再嚟一鋪', 'RETRY'], loading: ['BOOTING NEURAL GRID…', 'BOOTING NEURAL GRID…'],
+  retry: ['再嚟一鋪', 'RETRY'],
   'death.wall': ['撞到能量牆', 'WALL COLLISION'], 'death.self': ['咬到自己', 'SELF COLLISION'], 'death.obstacle': ['撞到障礙物', 'OBSTACLE HIT'],
   levelN: ['第 {n} 關', 'LEVEL {n}'], levelUp: ['升級', 'LEVEL UP'], levelNote: ['速度提升 · {zone} · 目標 {target} 粒', 'SPEED UP · {zone} · TARGET {target}'],
   endless: ['無盡', 'ENDLESS'], milestone: ['里程碑！+{pts} 分', 'MILESTONE! +{pts}'],

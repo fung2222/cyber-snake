@@ -209,9 +209,6 @@ kbd { display: inline-block; min-width: 24px; padding: 1px 6px; margin: 0 2px; f
 .results b { font-size: 26px; color: #fff; text-shadow: 0 0 10px var(--c1); font-variant-numeric: tabular-nums; }
 .death-reason { font-family: var(--font-zh); font-size: 13px; letter-spacing: 3px; color: #ff6b85; margin-bottom: 8px; }
 
-.loading { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: var(--bg); transition: opacity .6s; }
-.loading.done { opacity: 0; pointer-events: none; }
-.ld-text { font-size: 14px; letter-spacing: 6px; color: var(--c1); text-shadow: 0 0 10px var(--c1); animation: blink 1s infinite; }
 .err { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 30; max-width: 90vw; padding: 20px; font-family: var(--font-zh); background: #200010; border: 1px solid #ff3b5c; color: #ffd0da; }
 
 @media (max-width: 760px) {

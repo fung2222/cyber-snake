@@ -31,7 +31,6 @@ const DT_CAP = parseFloat(params.get('dtcap') || '0.1');
 function fatal(msg) {
   const e = document.getElementById('err');
   e.textContent = '⚠ ' + msg; e.classList.remove('hidden');
-  document.getElementById('loading').classList.add('done');
 }
 
 let renderer;
@@ -562,7 +561,6 @@ if (DEMO) {
   startGame();
 }
 requestAnimationFrame((t) => { last = t; frame(t); });
-setTimeout(() => ui.el.loading.classList.add('done'), 250);
 
 // test / debug hook
 window.__snake = {

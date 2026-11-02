@@ -12,7 +12,7 @@ SEED_JS = "(()=>{let a=%d>>>0;Math.random=function(){a|=0;a=a+0x6D2B79F5|0;let t
 os.makedirs(OUT, exist_ok=True)
 errs_all = []
 with sync_playwright() as p:
-    b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=ARGS)
+    b = p.chromium.launch(args=ARGS)
     for (w, h) in [(412, 915), (1280, 800)]:
         m = w < 600
         ctx = b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=2 if m else 1, is_mobile=m, has_touch=m)

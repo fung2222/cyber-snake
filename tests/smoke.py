@@ -15,7 +15,7 @@ def check(c, m):
     print(('PASS ' if c else 'FAIL ') + m, flush=True)
     if not c: fails.append(m)
 def run(p, name, w, h, mobile):
-    b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=ARGS)
+    b = p.chromium.launch(args=ARGS)
     ctx = b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=2 if mobile else 1, is_mobile=mobile, has_touch=mobile)
     pg = ctx.new_page(); errs = []
     pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)

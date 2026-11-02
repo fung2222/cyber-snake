@@ -135,7 +135,7 @@ def settle(pg, ms=2500):
     pg.wait_for_timeout(ms)
 
 with sync_playwright() as p:
-    b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=ARGS)
+    b = p.chromium.launch(args=ARGS)
     for (w, h) in [(412, 915), (1280, 800)]:
         name = f'{w}x{h}'
         for si, seed in enumerate(SEEDS):

@@ -161,7 +161,7 @@ html[data-bg="acid-caution"] #scanlines {
 #screen-start::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: #05010f; opacity: 0; animation: introDim 2.6s ease-out forwards; }
 @keyframes introDim { from { opacity: 0; } to { opacity: .34; } }
 #screen-start .panel { position: relative; z-index: 1; }
-.start-loading { position: fixed; inset: 0; z-index: 18; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, rgba(0,229,255,.10), rgba(5,1,15,.86) 58%, rgba(5,1,15,.96)); opacity: 1; pointer-events: auto; transition: opacity .32s ease; }
+.start-loading { position: fixed; inset: 0; z-index: 18; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, rgba(5,1,15,.78) 0%, rgba(5,1,15,.92) 55%, rgba(5,1,15,.97) 100%); backdrop-filter: blur(14px) saturate(.72); -webkit-backdrop-filter: blur(14px) saturate(.72); opacity: 1; pointer-events: auto; transition: opacity .32s ease; }
 .start-loading.on { opacity: 1; }
 .start-loading.out { opacity: 0; }
 .sl-core { position: relative; width: 178px; height: 178px; display: grid; place-items: center; }
